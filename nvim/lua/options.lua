@@ -2,6 +2,7 @@
 vim.opt.clipboard = "unnamedplus" -- use system clipboard
 vim.opt.completeopt = { "menu", "menuone", "noselect" }
 vim.opt.mouse = "a" -- allow the mouse to be used in Nvim
+vim.opt.conceallevel = 1
 
 -- Tab
 vim.opt.tabstop = 4 -- number of visual spaces per TAB
@@ -39,3 +40,5 @@ vim.opt.smartcase = true -- but make it case sensitive if an uppercase is entere
 -- })
 --
 vim.lsp.inlay_hint.enable(true)
+
+vim.g.have_nerd_font = true

@@ -13,7 +13,10 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
 	-- colorscheme
+	"killitar/obscure.nvim",
 	"folke/tokyonight.nvim",
+	{ "catppuccin/nvim", name = "catppuccin", priority = 1000 },
+	"AlexvZyl/nordic.nvim",
 	{
 		"onsails/lspkind.nvim",
 		event = { "VimEnter" },
@@ -59,6 +62,7 @@ require("lazy").setup({
 			require("config.treesitter")
 		end,
 	},
+	-- formatter
 	{
 		"stevearc/conform.nvim",
 		event = { "BufReadPre", "BufNewFile" },
@@ -66,30 +70,105 @@ require("lazy").setup({
 			require("config.conform")
 		end,
 	},
-})
-
-local lspconfig = require("lspconfig")
-local configs = require("lspconfig/configs")
-
-if not configs.golangcilsp then
-	configs.golangcilsp = {
-		default_config = {
-			cmd = { "golangci-lint-langserver" },
-			root_dir = lspconfig.util.root_pattern(".git", "go.mod"),
-			init_options = {
-				command = {
-					"golangci-lint",
-					"run",
-					"-c",
-					"./golangci-lint.yml",
-					"--out-format",
-					"json",
-					"--issues-exit-code=1",
-				},
-			},
+	{
+		"kylechui/nvim-surround",
+		event = "VeryLazy",
+		config = function()
+			require("config.nvim-surround")
+		end,
+	},
+	{
+		"nvim-treesitter/nvim-treesitter-textobjects",
+		event = "VeryLazy",
+		config = function()
+			require("config.nvim-treesitter-textobjects")
+		end,
+	},
+	{
+		"windwp/nvim-autopairs",
+		event = "InsertEnter",
+		config = true,
+	},
+	{
+		"nvim-neo-tree/neo-tree.nvim",
+		branch = "v3.x",
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+			"MunifTanjim/nui.nvim",
+			"3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
+			"s1n7ax/nvim-window-picker",
 		},
-	}
-end
-lspconfig.golangci_lint_ls.setup({
-	filetypes = { "go", "gomod" },
+	},
+	{
+		"nvim-lualine/lualine.nvim",
+		dependencies = { "nvim-tree/nvim-web-devicons" },
+		config = function()
+			require("config.lualine")
+		end,
+	},
+	{
+		"ray-x/go.nvim",
+		dependencies = { -- optional packages
+			"ray-x/guihua.lua",
+			"neovim/nvim-lspconfig",
+			"nvim-treesitter/nvim-treesitter",
+		},
+		config = function()
+			require("config.gonvim")
+		end,
+		event = { "CmdlineEnter" },
+		ft = { "go", "gomod" },
+		build = ':lua require("go.install").update_all_sync()', -- if you need to install/update all binaries
+	},
+	{
+		"rcarriga/nvim-dap-ui",
+		dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio", "theHamsta/nvim-dap-virtual-text" },
+	},
+	{
+		"goolord/alpha-nvim",
+		dependencies = {
+			"echasnovski/mini.icons",
+			"nvim-lua/plenary.nvim",
+		},
+		event = "VimEnter",
+		config = function()
+			require("config.alpha")
+		end,
+	},
+	{
+		"epwalsh/obsidian.nvim",
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"hrsh7th/nvim-cmp",
+		},
+		config = function()
+			require("obsidian").setup({
+				workspaces = {
+					{
+						name = "all",
+						path = "~/conserva",
+					},
+				},
+				daily_notes = {
+					-- Optional, if you keep daily notes in a separate directory.
+					folder = "Daily",
+					-- Optional, if you want to change the date format for the ID of daily notes.
+					date_format = "%Y-%m-%d",
+					-- Optional, default tags to add to each new daily note created.
+					default_tags = { "daily" },
+					-- Optional, if you want to automatically insert a template from your template directory like 'daily.md'
+					template = "Daily.md",
+				},
+				templates = {
+					folder = "~/conserva/Templates",
+					date_format = "%Y-%m-%d",
+				},
+				attachments = {
+					img_folder = "images",
+				},
+				-- see below for full list of options 👇
+			})
+		end,
+	},
 })
