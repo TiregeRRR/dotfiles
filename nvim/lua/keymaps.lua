@@ -51,7 +51,7 @@ vim.keymap.set("n", "<space>f", function()
 end, bufopts)
 
 -- diagnostics
-vim.keymap.set("n", "gl", vim.diagnostic.open_float, opts)
+vim.keymap.set("n", "gl", vim.diagnostic.open_float, { desc = "open float diagnostics window" })
 
 -- Formatters/linters
 vim.keymap.set({ "n", "v" }, "<leader>mp", function()

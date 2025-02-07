@@ -1,5 +1,5 @@
--- local colorscheme = 'tokyonight-night'
-local colorscheme = "catppuccin-mocha"
+local colorscheme = "tokyonight-night"
+-- local colorscheme = "catppuccin-mocha"
 
 local is_ok, _ = pcall(vim.cmd, "colorscheme " .. colorscheme)
 if not is_ok then

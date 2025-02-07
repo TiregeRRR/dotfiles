@@ -13,9 +13,26 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
 	-- colorscheme
-	"killitar/obscure.nvim",
-	"folke/tokyonight.nvim",
-	{ "catppuccin/nvim", name = "catppuccin", priority = 1000 },
+	{
+		"killitar/obscure.nvim",
+		cond = function()
+			return not vim.g.vscode
+		end,
+	},
+	{
+		"folke/tokyonight.nvim",
+		cond = function()
+			return not vim.g.vscode
+		end,
+	},
+	{
+		"catppuccin/nvim",
+		name = "catppuccin",
+		priority = 1000,
+		cond = function()
+			return not vim.g.vscode
+		end,
+	},
 	"AlexvZyl/nordic.nvim",
 	{
 		"onsails/lspkind.nvim",
@@ -23,29 +40,28 @@ require("lazy").setup({
 	},
 	-- auto-completion
 	{
-		"hrsh7th/nvim-cmp",
-		dependencies = {
-			"lspkind.nvim",
-			"hrsh7th/cmp-nvim-lsp", -- lsp auto-completion
-			"hrsh7th/cmp-buffer", -- buffer auto-completion
-			"hrsh7th/cmp-path", -- path auto-completion
-			"hrsh7th/cmp-cmdline", -- cmdline auto-completion
-		},
-		config = function()
-			require("config.nvim-cmp")
-		end,
-	},
-	-- luasnip
-	{
 		"L3MON4D3/LuaSnip",
 		version = "v2.*",
+		cond = function()
+			return not vim.g.vscode
+		end,
 	},
 	-- mason
 	"williamboman/mason.nvim",
 	"williamboman/mason-lspconfig.nvim",
-	"neovim/nvim-lspconfig",
+	{
+		"neovim/nvim-lspconfig",
+		cond = function()
+			return not vim.g.vscode
+		end,
+	},
 	-- icons
-	"onsails/lspkind.nvim",
+	{
+		"onsails/lspkind.nvim",
+		cond = function()
+			return not vim.g.vscode
+		end,
+	},
 	-- fzf
 	{
 		"nvim-telescope/telescope-file-browser.nvim",
@@ -61,6 +77,9 @@ require("lazy").setup({
 		config = function()
 			require("config.treesitter")
 		end,
+		cond = function()
+			return not vim.g.vscode
+		end,
 	},
 	-- formatter
 	{
@@ -69,6 +88,9 @@ require("lazy").setup({
 		config = function()
 			require("config.conform")
 		end,
+		cond = function()
+			return not vim.g.vscode
+		end,
 	},
 	{
 		"kylechui/nvim-surround",
@@ -76,12 +98,18 @@ require("lazy").setup({
 		config = function()
 			require("config.nvim-surround")
 		end,
+		cond = function()
+			return not vim.g.vscode
+		end,
 	},
 	{
 		"nvim-treesitter/nvim-treesitter-textobjects",
 		event = "VeryLazy",
 		config = function()
 			require("config.nvim-treesitter-textobjects")
+		end,
+		cond = function()
+			return not vim.g.vscode
 		end,
 	},
 	{
@@ -99,12 +127,18 @@ require("lazy").setup({
 			"3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
 			"s1n7ax/nvim-window-picker",
 		},
+		cond = function()
+			return not vim.g.vscode
+		end,
 	},
 	{
 		"nvim-lualine/lualine.nvim",
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 		config = function()
 			require("config.lualine")
+		end,
+		cond = function()
+			return not vim.g.vscode
 		end,
 	},
 	{
@@ -120,10 +154,16 @@ require("lazy").setup({
 		event = { "CmdlineEnter" },
 		ft = { "go", "gomod" },
 		build = ':lua require("go.install").update_all_sync()', -- if you need to install/update all binaries
+		cond = function()
+			return not vim.g.vscode
+		end,
 	},
 	{
 		"rcarriga/nvim-dap-ui",
 		dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio", "theHamsta/nvim-dap-virtual-text" },
+		cond = function()
+			return not vim.g.vscode
+		end,
 	},
 	{
 		"goolord/alpha-nvim",
@@ -135,40 +175,98 @@ require("lazy").setup({
 		config = function()
 			require("config.alpha")
 		end,
+		cond = function()
+			return not vim.g.vscode
+		end,
 	},
 	{
-		"epwalsh/obsidian.nvim",
+		"sindrets/diffview.nvim",
+		cond = function()
+			return not vim.g.vscode
+		end,
+	},
+	{
+		"lewis6991/gitsigns.nvim",
+		config = function()
+			require("gitsigns").setup()
+		end,
+	},
+	{
+		"folke/which-key.nvim",
+		event = "VeryLazy",
+		priority = 999, -- Load before other plugins
+		init = function()
+			vim.o.timeout = true
+			vim.o.timeoutlen = 300
+		end,
+		keys = {
+			{
+				"<leader>?",
+				function()
+					require("which-key").show({ global = false })
+				end,
+				desc = "Buffer Local Keymaps (which-key)",
+			},
+		},
+		cond = function()
+			return not vim.g.vscode
+		end,
+	},
+	{
+		"chrisgrieser/nvim-spider",
+		lazy = true,
+		keys = {
+			{
+				"e",
+				"<cmd>lua require('spider').motion('e')<CR>",
+				mode = { "n", "o", "x" },
+			},
+			{
+				"b",
+				"<cmd>lua require('spider').motion('b')<CR>",
+				mode = { "n", "o", "x" },
+			},
+			{
+				"w",
+				"<cmd>lua require('spider').motion('e')<CR>",
+				mode = { "n", "o", "x" },
+			},
+			-- ...
+		},
+	},
+	{
+		"nvim-orgmode/orgmode",
+		event = "VeryLazy",
+		ft = { "org" },
+		config = function()
+			-- Setup orgmode
+			require("orgmode").setup({
+				org_agenda_files = "~/neoconserva/**/*",
+				org_default_notes_file = "~/neoconserva/refile.org",
+			})
+
+			-- NOTE: If you are using nvim-treesitter with ~ensure_installed = "all"~ option
+			-- add ~org~ to ignore_install
+			-- require('nvim-treesitter.configs').setup({
+			--   ensure_installed = 'all',
+			--   ignore_install = { 'org' },
+			-- })
+		end,
+	},
+	{
+		"hrsh7th/nvim-cmp",
 		dependencies = {
-			"nvim-lua/plenary.nvim",
-			"hrsh7th/nvim-cmp",
+			"lspkind.nvim",
+			"hrsh7th/cmp-nvim-lsp", -- lsp auto-completion
+			"hrsh7th/cmp-buffer", -- buffer auto-completion
+			"hrsh7th/cmp-path", -- path auto-completion
+			"hrsh7th/cmp-cmdline", -- cmdline auto-completion
 		},
 		config = function()
-			require("obsidian").setup({
-				workspaces = {
-					{
-						name = "all",
-						path = "~/conserva",
-					},
-				},
-				daily_notes = {
-					-- Optional, if you keep daily notes in a separate directory.
-					folder = "Daily",
-					-- Optional, if you want to change the date format for the ID of daily notes.
-					date_format = "%Y-%m-%d",
-					-- Optional, default tags to add to each new daily note created.
-					default_tags = { "daily" },
-					-- Optional, if you want to automatically insert a template from your template directory like 'daily.md'
-					template = "Daily.md",
-				},
-				templates = {
-					folder = "~/conserva/Templates",
-					date_format = "%Y-%m-%d",
-				},
-				attachments = {
-					img_folder = "images",
-				},
-				-- see below for full list of options 👇
-			})
+			require("config.nvim-cmp")
+		end,
+		cond = function()
+			return not vim.g.vscode
 		end,
 	},
 })

@@ -3,6 +3,31 @@ local fb_actions = require("telescope._extensions.file_browser.actions")
 
 telescope.setup({
 	extensions = {
+		defaults = {
+			vimgrep_arguments = {
+				"rg",
+				"--color=never",
+				"--no-heading",
+				"--with-filename",
+				"--line-number",
+				"--column",
+				"--smart-case",
+				"--hidden",
+				"--glob=!vendor/**", -- Ignore paths with "vendor"
+				"--glob=!tests/**", -- Ignore paths with "tests"
+			},
+			file_ignore_patterns = {
+				"vendor/.*", -- Lua pattern for file-browser
+				"tests/.*", -- (Not used by rg/grep)
+			},
+		},
+		pickers = {
+			live_grep = {
+				additional_args = function(_)
+					return { "--hidden", "--glob=!vendor/**", "--glob=!tests/**" }
+				end,
+			},
+		},
 		file_browser = {
 			path = vim.loop.cwd(),
 			cwd = vim.loop.cwd(),
@@ -16,7 +41,7 @@ telescope.setup({
 			hidden = { file_browser = false, folder_browser = false },
 			respect_gitignore = vim.fn.executable("fd") == 1,
 			no_ignore = false,
-			file_ignore_patterns = { "vendor", "tests" },
+			file_ignore_patterns = { "vendor/*", "tests/*" },
 			follow_symlinks = false,
 			browse_files = require("telescope._extensions.file_browser.finders").browse_files,
 			browse_folders = require("telescope._extensions.file_browser.finders").browse_folders,
