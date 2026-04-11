@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+alacritty/font-generated.toml
+alacritty/theme-generated.toml
+hypr/hyprlock.conf
+hypr/hyprpaper.conf
+hypr/theme/current.conf
+hypr/waybar.css
+hypr/waybar.jsonc
+nvim/lua/theme/generated.lua
+rofi/theme-generated.rasi

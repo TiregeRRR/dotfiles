@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE="$HOME/.config/theme-switcher"
+CURRENT="$("$BASE/apply-font" --current-name 2>/dev/null || true)"
+
+CHOICE="$("$BASE/apply-font" --list | rofi -dmenu -i -p "Font" -mesg "Current: ${CURRENT:-none}")"
+
+if [[ -z "${CHOICE}" ]]; then
+    exit 0
+fi
+
+exec "$BASE/apply-font" "$CHOICE"

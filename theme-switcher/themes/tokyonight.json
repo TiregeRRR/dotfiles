@@ -1,0 +1,41 @@
+{
+  "name": "Tokyo Night",
+  "font_ui": "Noto Sans",
+  "font_mono": "JetBrains Mono Nerd Font",
+  "wallpaper": "~/.config/i3/wallpaper.png",
+  "background": "1a1b26",
+  "background_alt": "16161e",
+  "foreground": "c0caf5",
+  "accent": "9d7cd8",
+  "accent_alt": "7aa2f7",
+  "warning": "e0af68",
+  "danger": "db4b4b",
+  "muted": "565f89",
+  "nvim_colorscheme": "tokyonight-night",
+  "alacritty": {
+    "primary": {
+      "background": "#1a1b26",
+      "foreground": "#c0caf5"
+    },
+    "normal": {
+      "black": "#15161e",
+      "red": "#f7768e",
+      "green": "#9ece6a",
+      "yellow": "#e0af68",
+      "blue": "#7aa2f7",
+      "magenta": "#bb9af7",
+      "cyan": "#7dcfff",
+      "white": "#a9b1d6"
+    },
+    "bright": {
+      "black": "#414868",
+      "red": "#ff899d",
+      "green": "#9fe044",
+      "yellow": "#faba4a",
+      "blue": "#8db0ff",
+      "magenta": "#c7a9ff",
+      "cyan": "#a4daff",
+      "white": "#c0caf5"
+    }
+  }
+}

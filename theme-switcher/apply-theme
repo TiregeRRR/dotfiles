@@ -1,0 +1,624 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+
+HOME = Path.home()
+BASE_DIR = HOME / ".config" / "theme-switcher"
+THEMES_DIR = BASE_DIR / "themes"
+FONTS_DIR = BASE_DIR / "fonts"
+TEMPLATES_DIR = BASE_DIR / "templates"
+CURRENT_THEME_FILE = BASE_DIR / "current_theme"
+CURRENT_FONT_FILE = BASE_DIR / "current_font"
+DEFAULT_FONT_ID = "pixel-code"
+
+HYPR_THEME_OUT = HOME / ".config" / "hypr" / "theme" / "current.conf"
+WAYBAR_JSON_OUT = HOME / ".config" / "hypr" / "waybar.jsonc"
+WAYBAR_CSS_OUT = HOME / ".config" / "hypr" / "waybar.css"
+HYPRLOCK_OUT = HOME / ".config" / "hypr" / "hyprlock.conf"
+HYPRPAPER_OUT = HOME / ".config" / "hypr" / "hyprpaper.conf"
+ROFI_THEME_OUT = HOME / ".config" / "rofi" / "theme-generated.rasi"
+ALACRITTY_THEME_OUT = HOME / ".config" / "alacritty" / "theme-generated.toml"
+ALACRITTY_FONT_OUT = HOME / ".config" / "alacritty" / "font-generated.toml"
+NVIM_THEME_OUT = HOME / ".config" / "nvim" / "lua" / "theme" / "generated.lua"
+DUNST_OUT = HOME / ".config" / "dunst" / "dunstrc"
+BTOP_THEME_OUT = HOME / ".config" / "btop" / "themes" / "theme-switcher.theme"
+BTOP_CONF_OUT = HOME / ".config" / "btop" / "btop.conf"
+K9S_CONFIG_OUT = HOME / ".config" / "k9s" / "config.yaml"
+K9S_SKIN_NAME = "theme-switcher"
+K9S_SKIN_OUT = HOME / ".config" / "k9s" / "skins" / f"{K9S_SKIN_NAME}.yaml"
+FIREFOX_PROFILES_INI = HOME / ".mozilla" / "firefox" / "profiles.ini"
+VSCODE_SETTINGS_PATHS = [
+    HOME / ".config" / "Code" / "User" / "settings.json",
+    HOME / ".config" / "Code - Insiders" / "User" / "settings.json",
+    HOME / ".config" / "Cursor" / "User" / "settings.json",
+    HOME / ".config" / "VSCodium" / "User" / "settings.json",
+]
+
+USER_CHROME_MARKER_BEGIN = "/* theme-switcher begin */"
+USER_CHROME_MARKER_END = "/* theme-switcher end */"
+USER_JS_MARKER_BEGIN = "// theme-switcher begin"
+USER_JS_MARKER_END = "// theme-switcher end"
+
+
+def hex_value(value: str) -> str:
+    return value.strip().lstrip("#").lower()
+
+
+def css_hex(value: str) -> str:
+    return f"#{hex_value(value)}"
+
+
+def rgba(value: str, alpha: float) -> str:
+    raw = hex_value(value)
+    r = int(raw[0:2], 16)
+    g = int(raw[2:4], 16)
+    b = int(raw[4:6], 16)
+    return f"rgba({r}, {g}, {b}, {alpha:.2f})"
+
+
+def hypr_rgb(value: str) -> str:
+    return f"rgb({hex_value(value)})"
+
+
+def css_hex_alpha(value: str, alpha: str) -> str:
+    return f"#{hex_value(value)}{alpha.lower()}"
+
+
+def list_themes() -> list[str]:
+    return sorted(path.stem for path in THEMES_DIR.glob("*.json"))
+
+
+def load_theme(theme_name: str) -> dict[str, str]:
+    theme_path = THEMES_DIR / f"{theme_name}.json"
+    if not theme_path.exists():
+        raise FileNotFoundError(f"Theme '{theme_name}' does not exist: {theme_path}")
+    return json.loads(theme_path.read_text())
+
+
+def list_fonts() -> list[str]:
+    return sorted(path.stem for path in FONTS_DIR.glob("*.json"))
+
+
+def load_font(font_name: str) -> dict:
+    font_path = FONTS_DIR / f"{font_name}.json"
+    if not font_path.exists():
+        raise FileNotFoundError(f"Font preset '{font_name}' does not exist: {font_path}")
+    return json.loads(font_path.read_text())
+
+
+def resolve_wallpaper_path(value: str) -> str:
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        path = (BASE_DIR / path).resolve()
+    else:
+        path = path.resolve()
+
+    if not path.exists():
+        raise FileNotFoundError(f"Wallpaper file does not exist: {path}")
+
+    return str(path)
+
+
+def render(template_name: str, context: dict[str, str]) -> str:
+    template = (TEMPLATES_DIR / template_name).read_text()
+    rendered = template
+    for key, value in sorted(context.items(), key=lambda item: len(item[0]), reverse=True):
+        rendered = rendered.replace(f"__{key.upper()}__", value)
+    return rendered
+
+
+def write_file(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content)
+
+
+def replace_or_append_block(content: str, begin: str, end: str, block: str) -> str:
+    replacement = f"{begin}\n{block.rstrip()}\n{end}\n"
+    if begin in content and end in content:
+        start = content.index(begin)
+        finish = content.index(end, start) + len(end)
+        trailing_newline = "\n" if finish < len(content) and content[finish] == "\n" else ""
+        return f"{content[:start].rstrip()}\n{replacement}{trailing_newline}{content[finish + len(trailing_newline):].lstrip()}"
+
+    if content and not content.endswith("\n"):
+        content += "\n"
+
+    return f"{content}{replacement}"
+
+
+def replace_setting_line(content: str, key: str, value: str) -> str:
+    line = f'{key} = {value}'
+    pattern = rf"(?m)^{re.escape(key)}\s*=.*$"
+    if re.search(pattern, content):
+        return re.sub(pattern, line, content, count=1)
+
+    if content and not content.endswith("\n"):
+        content += "\n"
+
+    return f"{content}{line}\n"
+
+
+def load_json(path: Path) -> dict:
+    if not path.exists():
+        return {}
+
+    raw = path.read_text().strip()
+    if not raw:
+        return {}
+
+    return json.loads(raw)
+
+
+def write_json(path: Path, content: dict) -> None:
+    write_file(path, json.dumps(content, indent=4, ensure_ascii=False) + "\n")
+
+
+def resolve_fonts(theme: dict) -> dict[str, str]:
+    font_id = CURRENT_FONT_FILE.read_text().strip() if CURRENT_FONT_FILE.exists() else DEFAULT_FONT_ID
+    available = set(list_fonts())
+    font_preset = {}
+
+    if font_id in available:
+        font_preset = load_font(font_id)
+    else:
+        font_id = DEFAULT_FONT_ID
+        if font_id in available:
+            font_preset = load_font(font_id)
+
+    font_ui = font_preset.get("font_ui", theme.get("font_ui", "Noto Sans"))
+    font_mono = font_preset.get("font_mono", theme.get("font_mono", "JetBrains Mono"))
+    font_nerd = font_preset.get("font_nerd", theme.get("font_nerd", font_mono))
+
+    return {
+        "font_id": font_id,
+        "font_name": font_preset.get("name", font_id),
+        "font_ui": font_ui,
+        "font_mono": font_mono,
+        "font_nerd": font_nerd,
+        "font_waybar_size": str(font_preset.get("waybar_size", 11)),
+        "font_rofi_size": str(font_preset.get("rofi_size", 11)),
+        "font_alacritty_size": str(font_preset.get("alacritty_size", 10)),
+        "font_hypr_groupbar_size": str(font_preset.get("hypr_groupbar_size", 10)),
+        "font_nvim_gui_size": str(font_preset.get("nvim_gui_size", 11)),
+    }
+
+
+def firefox_profiles() -> list[Path]:
+    if not FIREFOX_PROFILES_INI.exists():
+        return []
+
+    import configparser
+
+    parser = configparser.RawConfigParser()
+    parser.read(FIREFOX_PROFILES_INI)
+    profiles: list[Path] = []
+
+    def resolve(path_value: str, is_relative: str) -> Path:
+        path = Path(path_value)
+        if is_relative == "1":
+            path = FIREFOX_PROFILES_INI.parent / path
+        return path.resolve()
+
+    for section in parser.sections():
+        if section.startswith("Profile"):
+            path_value = parser.get(section, "Path", fallback="")
+            if not path_value:
+                continue
+            profile = resolve(path_value, parser.get(section, "IsRelative", fallback="1"))
+            if profile.exists():
+                profiles.append(profile)
+        elif section.startswith("Install"):
+            path_value = parser.get(section, "Default", fallback="")
+            if not path_value:
+                continue
+            profile = resolve(path_value, "1")
+            if profile.exists():
+                profiles.append(profile)
+
+    unique: list[Path] = []
+    seen = set()
+    for profile in profiles:
+        if profile not in seen:
+            unique.append(profile)
+            seen.add(profile)
+
+    return unique
+
+
+def vscode_settings_paths() -> list[Path]:
+    return [path for path in VSCODE_SETTINGS_PATHS if path.parent.exists() or path.exists()]
+
+
+def apply_vscode_theme(theme: dict[str, str], context: dict[str, str]) -> None:
+    terminal = theme["alacritty"]
+    workbench_colors = {
+        "activityBar.activeBorder": context["accent_css"],
+        "activityBar.background": context["background_alt_css"],
+        "activityBar.foreground": context["foreground_css"],
+        "button.background": context["accent_css"],
+        "button.foreground": context["background_alt_css"],
+        "button.hoverBackground": context["accent_alt_css"],
+        "commandCenter.background": context["background_css"],
+        "commandCenter.foreground": context["foreground_css"],
+        "editor.background": context["background_css"],
+        "editor.foreground": context["foreground_css"],
+        "editor.lineHighlightBackground": css_hex_alpha(context["background_alt_hex"], "88"),
+        "editor.selectionBackground": css_hex_alpha(context["accent_hex"], "40"),
+        "editor.inactiveSelectionBackground": css_hex_alpha(context["accent_hex"], "24"),
+        "editor.selectionHighlightBackground": css_hex_alpha(context["accent_alt_hex"], "22"),
+        "editor.wordHighlightBackground": css_hex_alpha(context["accent_alt_hex"], "18"),
+        "editor.wordHighlightStrongBackground": css_hex_alpha(context["accent_hex"], "18"),
+        "editorCursor.foreground": context["accent_alt_css"],
+        "editorLineNumber.foreground": context["muted_css"],
+        "editorLineNumber.activeForeground": context["accent_css"],
+        "editorIndentGuide.background1": css_hex_alpha(context["muted_hex"], "55"),
+        "editorIndentGuide.activeBackground1": context["accent_css"],
+        "editorBracketMatch.background": css_hex_alpha(context["accent_alt_hex"], "18"),
+        "editorBracketMatch.border": context["accent_alt_css"],
+        "focusBorder": context["accent_css"],
+        "input.background": context["background_css"],
+        "input.foreground": context["foreground_css"],
+        "input.border": context["accent_css"],
+        "inputOption.activeBorder": context["accent_alt_css"],
+        "list.activeSelectionBackground": css_hex_alpha(context["accent_hex"], "33"),
+        "list.activeSelectionForeground": context["foreground_css"],
+        "list.hoverBackground": css_hex_alpha(context["muted_hex"], "20"),
+        "list.inactiveSelectionBackground": css_hex_alpha(context["accent_hex"], "24"),
+        "notificationCenterHeader.background": context["background_alt_css"],
+        "notificationLink.foreground": context["accent_alt_css"],
+        "notifications.background": context["background_alt_css"],
+        "notifications.border": context["accent_css"],
+        "notifications.foreground": context["foreground_css"],
+        "panel.background": context["background_alt_css"],
+        "pickerGroup.foreground": context["accent_css"],
+        "pickerGroup.border": context["accent_css"],
+        "sideBar.background": context["background_alt_css"],
+        "sideBar.foreground": context["foreground_css"],
+        "statusBar.background": context["background_alt_css"],
+        "statusBar.foreground": context["foreground_css"],
+        "statusBar.noFolderBackground": context["background_alt_css"],
+        "tab.activeBackground": context["background_css"],
+        "tab.activeBorderTop": context["accent_css"],
+        "tab.activeForeground": context["foreground_css"],
+        "tab.border": context["background_alt_css"],
+        "tab.inactiveBackground": context["background_alt_css"],
+        "tab.inactiveForeground": context["muted_css"],
+        "terminal.background": terminal["primary"]["background"],
+        "terminal.foreground": terminal["primary"]["foreground"],
+        "terminal.ansiBlack": terminal["normal"]["black"],
+        "terminal.ansiRed": terminal["normal"]["red"],
+        "terminal.ansiGreen": terminal["normal"]["green"],
+        "terminal.ansiYellow": terminal["normal"]["yellow"],
+        "terminal.ansiBlue": terminal["normal"]["blue"],
+        "terminal.ansiMagenta": terminal["normal"]["magenta"],
+        "terminal.ansiCyan": terminal["normal"]["cyan"],
+        "terminal.ansiWhite": terminal["normal"]["white"],
+        "terminal.ansiBrightBlack": terminal["bright"]["black"],
+        "terminal.ansiBrightRed": terminal["bright"]["red"],
+        "terminal.ansiBrightGreen": terminal["bright"]["green"],
+        "terminal.ansiBrightYellow": terminal["bright"]["yellow"],
+        "terminal.ansiBrightBlue": terminal["bright"]["blue"],
+        "terminal.ansiBrightMagenta": terminal["bright"]["magenta"],
+        "terminal.ansiBrightCyan": terminal["bright"]["cyan"],
+        "terminal.ansiBrightWhite": terminal["bright"]["white"],
+        "titleBar.activeBackground": context["background_alt_css"],
+        "titleBar.activeForeground": context["foreground_css"],
+    }
+
+    token_colors = {
+        "comments": context["muted_css"],
+        "functions": context["accent_alt_css"],
+        "keywords": context["accent_css"],
+        "numbers": context["warning_css"],
+        "strings": terminal["normal"]["green"],
+        "types": context["foreground_css"],
+        "variables": context["foreground_css"],
+    }
+
+    for settings_path in vscode_settings_paths():
+        settings = load_json(settings_path)
+        settings["window.autoDetectColorScheme"] = False
+        settings["workbench.colorTheme"] = "Default Dark Modern"
+        settings["workbench.preferredDarkColorTheme"] = "Default Dark Modern"
+        settings["editor.fontFamily"] = context["font_mono"]
+        settings["terminal.integrated.fontFamily"] = context["font_mono"]
+        settings["debug.console.fontFamily"] = context["font_mono"]
+        settings["scm.inputFontFamily"] = context["font_mono"]
+        settings["markdown.preview.fontFamily"] = context["font_ui"]
+
+        workbench = settings.get("workbench.colorCustomizations")
+        if not isinstance(workbench, dict):
+            workbench = {}
+        workbench.update(workbench_colors)
+        settings["workbench.colorCustomizations"] = workbench
+
+        tokens = settings.get("editor.tokenColorCustomizations")
+        if not isinstance(tokens, dict):
+            tokens = {}
+        tokens.update(token_colors)
+        settings["editor.tokenColorCustomizations"] = tokens
+
+        semantic = settings.get("editor.semanticTokenColorCustomizations")
+        if not isinstance(semantic, dict):
+            semantic = {}
+        semantic["enabled"] = True
+        settings["editor.semanticTokenColorCustomizations"] = semantic
+
+        write_json(settings_path, settings)
+
+
+def apply_btop_theme(context: dict[str, str]) -> None:
+    write_file(BTOP_THEME_OUT, render("btop.theme.tpl", context))
+    existing = BTOP_CONF_OUT.read_text() if BTOP_CONF_OUT.exists() else ""
+    updated = replace_setting_line(existing, "color_theme", '"theme-switcher"')
+    write_file(BTOP_CONF_OUT, updated)
+
+
+def apply_k9s_theme(context: dict[str, str]) -> None:
+    write_file(K9S_SKIN_OUT, render("k9s-skin.yaml.tpl", context))
+
+    existing = K9S_CONFIG_OUT.read_text() if K9S_CONFIG_OUT.exists() else ""
+    skin_line = f"skin: {K9S_SKIN_NAME}"
+
+    if re.search(r"(?m)^\s*skin:\s*.*$", existing):
+        updated = re.sub(r"(?m)^(\s*)skin:\s*.*$", rf"\1{skin_line}", existing, count=1)
+    elif re.search(r"(?m)^(\s*)ui:\s*$", existing):
+        updated = re.sub(r"(?m)^(\s*)ui:\s*$", rf"\g<0>\n\1  {skin_line}", existing, count=1)
+    elif re.search(r"(?m)^k9s:\s*$", existing):
+        updated = re.sub(r"(?m)^k9s:\s*$", f"k9s:\n  ui:\n    {skin_line}", existing, count=1)
+    else:
+        updated = f"k9s:\n  ui:\n    {skin_line}\n"
+
+    write_file(K9S_CONFIG_OUT, updated)
+
+
+def build_context(theme_name: str, theme: dict[str, str]) -> dict[str, str]:
+    background = hex_value(theme["background"])
+    background_alt = hex_value(theme["background_alt"])
+    foreground = hex_value(theme["foreground"])
+    accent = hex_value(theme["accent"])
+    accent_alt = hex_value(theme["accent_alt"])
+    warning = hex_value(theme["warning"])
+    danger = hex_value(theme["danger"])
+    muted = hex_value(theme["muted"])
+    wallpaper = resolve_wallpaper_path(theme["wallpaper"])
+    fonts = resolve_fonts(theme)
+    nvim_colorscheme = theme.get("nvim_colorscheme", "tokyonight-night")
+    alacritty = theme["alacritty"]
+
+    return {
+        "theme_name": theme.get("name", theme_name),
+        "theme_id": theme_name,
+        "font_name": fonts["font_name"],
+        "font_id": fonts["font_id"],
+        "wallpaper": wallpaper,
+        "font_ui": fonts["font_ui"],
+        "font_mono": fonts["font_mono"],
+        "font_nerd": fonts["font_nerd"],
+        "font_waybar_size": fonts["font_waybar_size"],
+        "font_rofi_size": fonts["font_rofi_size"],
+        "font_alacritty_size": fonts["font_alacritty_size"],
+        "font_hypr_groupbar_size": fonts["font_hypr_groupbar_size"],
+        "font_nvim_gui_size": fonts["font_nvim_gui_size"],
+        "background_hex": background,
+        "background_alt_hex": background_alt,
+        "foreground_hex": foreground,
+        "accent_hex": accent,
+        "accent_alt_hex": accent_alt,
+        "warning_hex": warning,
+        "danger_hex": danger,
+        "muted_hex": muted,
+        "background_css": css_hex(background),
+        "background_alt_css": css_hex(background_alt),
+        "foreground_css": css_hex(foreground),
+        "accent_css": css_hex(accent),
+        "accent_alt_css": css_hex(accent_alt),
+        "warning_css": css_hex(warning),
+        "danger_css": css_hex(danger),
+        "muted_css": css_hex(muted),
+        "background_rgb": hypr_rgb(background),
+        "background_alt_rgb": hypr_rgb(background_alt),
+        "foreground_rgb": hypr_rgb(foreground),
+        "accent_rgb": hypr_rgb(accent),
+        "accent_alt_rgb": hypr_rgb(accent_alt),
+        "warning_rgb": hypr_rgb(warning),
+        "danger_rgb": hypr_rgb(danger),
+        "muted_rgb": hypr_rgb(muted),
+        "overlay_rgba": rgba(background_alt, 0.44),
+        "panel_rgba": rgba(background_alt, 0.76),
+        "panel_border_start_rgba": rgba(accent, 0.92),
+        "panel_border_end_rgba": rgba(foreground, 0.58),
+        "shadow_rgba": rgba(background, 0.92),
+        "background_full_rgba": rgba(background, 1.00),
+        "input_inner_rgba": rgba(background, 0.72),
+        "clock_rgba": rgba(foreground, 1.00),
+        "text_soft_rgba": rgba(foreground, 0.96),
+        "muted_rgba": rgba(muted, 0.95),
+        "nvim_colorscheme": nvim_colorscheme,
+        "alacritty_primary_background": alacritty["primary"]["background"],
+        "alacritty_primary_foreground": alacritty["primary"]["foreground"],
+        "alacritty_normal_black": alacritty["normal"]["black"],
+        "alacritty_normal_red": alacritty["normal"]["red"],
+        "alacritty_normal_green": alacritty["normal"]["green"],
+        "alacritty_normal_yellow": alacritty["normal"]["yellow"],
+        "alacritty_normal_blue": alacritty["normal"]["blue"],
+        "alacritty_normal_magenta": alacritty["normal"]["magenta"],
+        "alacritty_normal_cyan": alacritty["normal"]["cyan"],
+        "alacritty_normal_white": alacritty["normal"]["white"],
+        "alacritty_bright_black": alacritty["bright"]["black"],
+        "alacritty_bright_red": alacritty["bright"]["red"],
+        "alacritty_bright_green": alacritty["bright"]["green"],
+        "alacritty_bright_yellow": alacritty["bright"]["yellow"],
+        "alacritty_bright_blue": alacritty["bright"]["blue"],
+        "alacritty_bright_magenta": alacritty["bright"]["magenta"],
+        "alacritty_bright_cyan": alacritty["bright"]["cyan"],
+        "alacritty_bright_white": alacritty["bright"]["white"],
+    }
+
+
+def reload_runtime() -> None:
+    if shutil.which("hyprctl"):
+        subprocess.run(["hyprctl", "reload"], check=False)
+
+    if shutil.which("dunstctl"):
+        subprocess.run(
+            ["dunstctl", "reload", str(DUNST_OUT)],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    elif shutil.which("dunst"):
+        subprocess.run(["pkill", "dunst"], check=False)
+        subprocess.Popen(
+            ["dunst", "-config", str(DUNST_OUT)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+
+    if not os.environ.get("WAYLAND_DISPLAY"):
+        return
+
+    if shutil.which("hyprpaper"):
+        subprocess.run(["pkill", "hyprpaper"], check=False)
+        subprocess.Popen(
+            ["hyprpaper", "-c", str(HYPRPAPER_OUT)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+
+    if shutil.which("waybar"):
+        subprocess.run(["pkill", "waybar"], check=False)
+        subprocess.Popen(
+            ["waybar", "-c", str(WAYBAR_JSON_OUT), "-s", str(WAYBAR_CSS_OUT)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+
+    if shutil.which("notify-send"):
+        theme_id = CURRENT_THEME_FILE.read_text().strip()
+        subprocess.run(
+            ["notify-send", "Theme applied", theme_id],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+
+def apply_theme(theme_name: str, no_reload: bool) -> None:
+    theme = load_theme(theme_name)
+    context = build_context(theme_name, theme)
+
+    write_file(HYPR_THEME_OUT, render("hypr-colors.conf.tpl", context))
+    write_file(WAYBAR_JSON_OUT, render("waybar.jsonc.tpl", context))
+    write_file(WAYBAR_CSS_OUT, render("waybar.css.tpl", context))
+    write_file(HYPRLOCK_OUT, render("hyprlock.conf.tpl", context))
+    write_file(HYPRPAPER_OUT, render("hyprpaper.conf.tpl", context))
+    write_file(ROFI_THEME_OUT, render("rofi-theme.rasi.tpl", context))
+    write_file(ALACRITTY_THEME_OUT, render("alacritty-theme.toml.tpl", context))
+    write_file(ALACRITTY_FONT_OUT, render("alacritty-font.toml.tpl", context))
+    write_file(NVIM_THEME_OUT, render("nvim-theme.lua.tpl", context))
+    write_file(DUNST_OUT, render("dunstrc.tpl", context))
+    apply_btop_theme(context)
+    apply_k9s_theme(context)
+    apply_vscode_theme(theme, context)
+    write_file(CURRENT_THEME_FILE, f"{theme_name}\n")
+
+    for profile in firefox_profiles():
+        chrome_dir = profile / "chrome"
+        chrome_dir.mkdir(parents=True, exist_ok=True)
+
+        write_file(chrome_dir / "theme-switcher-userChrome.css", render("firefox-userChrome.css.tpl", context))
+        write_file(chrome_dir / "theme-switcher-userContent.css", render("firefox-userContent.css.tpl", context))
+
+        user_chrome_import = '@import url("theme-switcher-userChrome.css");'
+        user_content_import = '@import url("theme-switcher-userContent.css");'
+
+        user_chrome_path = chrome_dir / "userChrome.css"
+        user_content_path = chrome_dir / "userContent.css"
+        user_js_path = profile / "user.js"
+
+        user_chrome_content = user_chrome_path.read_text() if user_chrome_path.exists() else ""
+        user_content_existing = user_content_path.read_text() if user_content_path.exists() else ""
+        user_js_existing = user_js_path.read_text() if user_js_path.exists() else ""
+
+        write_file(
+            user_chrome_path,
+            replace_or_append_block(user_chrome_content, USER_CHROME_MARKER_BEGIN, USER_CHROME_MARKER_END, user_chrome_import),
+        )
+        write_file(
+            user_content_path,
+            replace_or_append_block(user_content_existing, USER_CHROME_MARKER_BEGIN, USER_CHROME_MARKER_END, user_content_import),
+        )
+        write_file(
+            user_js_path,
+            replace_or_append_block(
+                user_js_existing,
+                USER_JS_MARKER_BEGIN,
+                USER_JS_MARKER_END,
+                '\n'.join(
+                    [
+                        'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);',
+                        'user_pref("browser.in-content.dark-mode", true);',
+                        'user_pref("widget.content.allow-gtk-dark-theme", true);',
+                        'user_pref("devtools.theme", "dark");',
+                    ]
+                ),
+            ),
+        )
+
+    if not no_reload:
+        reload_runtime()
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Apply a desktop theme across Hyprland, Waybar, Rofi and Hyprlock.")
+    parser.add_argument("theme", nargs="?", help="Theme id to apply")
+    parser.add_argument("--list", action="store_true", help="List available theme ids")
+    parser.add_argument("--current", action="store_true", help="Apply the current saved theme")
+    parser.add_argument("--current-name", action="store_true", help="Print the current saved theme id")
+    parser.add_argument("--no-reload", action="store_true", help="Generate files without reloading running programs")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+
+    if args.list:
+        print("\n".join(list_themes()))
+        return 0
+
+    if args.current_name:
+        if CURRENT_THEME_FILE.exists():
+            print(CURRENT_THEME_FILE.read_text().strip())
+        return 0
+
+    if args.current:
+        theme_name = CURRENT_THEME_FILE.read_text().strip() if CURRENT_THEME_FILE.exists() else "tokyonight"
+        apply_theme(theme_name, args.no_reload)
+        return 0
+
+    theme_name = args.theme or (CURRENT_THEME_FILE.read_text().strip() if CURRENT_THEME_FILE.exists() else "tokyonight")
+    available = list_themes()
+    if theme_name not in available:
+        print(f"Unknown theme '{theme_name}'. Available: {', '.join(available)}", file=sys.stderr)
+        return 1
+
+    apply_theme(theme_name, args.no_reload)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -5,7 +5,7 @@ local lualine = require("lualine")
 
 -- Color table for highlights
 -- stylua: ignore
-local colors = {
+local defaults = {
   bg       = '#202328',
   fg       = '#bbc2cf',
   yellow   = '#ECBE7B',
@@ -18,6 +18,13 @@ local colors = {
   blue     = '#51afef',
   red      = '#ec5f67',
 }
+
+local M = {}
+
+local function palette()
+	local colors = vim.tbl_extend("force", defaults, vim.g.desktop_theme_lualine or {})
+	return colors
+end
 
 local conditions = {
 	buffer_not_empty = function()
@@ -34,7 +41,9 @@ local conditions = {
 }
 
 -- Config
-local config = {
+function M.build()
+	local colors = palette()
+	local config = {
 	options = {
 		-- Disable sections and component separators
 		component_separators = "",
@@ -218,4 +227,13 @@ ins_right({
 })
 
 -- Now don't forget to initialize lualine
-lualine.setup(config)
+	return config
+end
+
+function M.apply()
+	lualine.setup(M.build())
+end
+
+M.apply()
+
+return M

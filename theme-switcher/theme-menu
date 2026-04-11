@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE="$HOME/.config/theme-switcher"
+CURRENT="$("$BASE/apply-theme" --current-name 2>/dev/null || true)"
+
+CHOICE="$("$BASE/apply-theme" --list | rofi -dmenu -i -p "Theme" -mesg "Current: ${CURRENT:-none}")"
+
+if [[ -z "${CHOICE}" ]]; then
+    exit 0
+fi
+
+exec "$BASE/apply-theme" "$CHOICE"

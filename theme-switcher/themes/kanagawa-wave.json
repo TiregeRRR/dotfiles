@@ -1,0 +1,41 @@
+{
+  "name": "Kanagawa Wave",
+  "font_ui": "Noto Sans",
+  "font_mono": "JetBrains Mono Nerd Font",
+  "wallpaper": "wallpapers/kanagawa-wave-graphic-wave.png",
+  "background": "1f1f28",
+  "background_alt": "16161d",
+  "foreground": "dcd7ba",
+  "accent": "957fb8",
+  "accent_alt": "7e9cd8",
+  "warning": "ff9e3b",
+  "danger": "e82424",
+  "muted": "727169",
+  "nvim_colorscheme": "kanagawa-wave",
+  "alacritty": {
+    "primary": {
+      "background": "#1f1f28",
+      "foreground": "#dcd7ba"
+    },
+    "normal": {
+      "black": "#090618",
+      "red": "#c34043",
+      "green": "#76946a",
+      "yellow": "#c0a36e",
+      "blue": "#7e9cd8",
+      "magenta": "#957fb8",
+      "cyan": "#6a9589",
+      "white": "#c8c093"
+    },
+    "bright": {
+      "black": "#727169",
+      "red": "#e82424",
+      "green": "#98bb6c",
+      "yellow": "#e6c384",
+      "blue": "#7fb4ca",
+      "magenta": "#938aa9",
+      "cyan": "#7aa89f",
+      "white": "#dcd7ba"
+    }
+  }
+}

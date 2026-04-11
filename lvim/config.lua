@@ -2,7 +2,7 @@ lvim.builtin.which_key.mappings["lb"] = {
   "<cmd>LspRestart<CR>", "Restart"
 }
 
-vim.opt.conceallevel=2
+vim.opt.conceallevel=1
 vim.opt.relativenumber = true
 lvim.builtin.which_key.mappings["to"] = {
   "<cmd>:sp|te<CR>:resize 11<CR>", "Terminal open"
@@ -67,6 +67,71 @@ lvim.builtin.nvimtree.setup.diagnostics.show_on_dirs = true
 -- Plugins
 ------------------------
 lvim.plugins = {
+  {
+    "nosduco/remote-sshfs.nvim",
+    connections = {
+      ssh_configs = { -- which ssh configs to parse for hosts list
+        vim.fn.expand "$HOME" .. "/.ssh/config",
+      },
+      -- NOTE: Can define ssh_configs similarly to include all configs in a folder
+      -- ssh_configs = vim.split(vim.fn.globpath(vim.fn.expand "$HOME" .. "/.ssh/configs", "*"), "\n")
+      sshfs_args = { -- arguments to pass to the sshfs command
+        "-o reconnect",
+        "-o ConnectTimeout=5",
+      },
+    },
+    mounts = {
+      base_dir = vim.fn.expand "$HOME" .. "/.sshfs/", -- base directory for mount points
+      unmount_on_exit = true, -- run sshfs as foreground, will unmount on vim exit
+    },
+    handlers = {
+      on_connect = {
+        change_dir = true, -- when connected change vim working directory to mount point
+      },
+      on_disconnect = {
+        clean_mount_folders = false, -- remove mount point folder on disconnect/unmount
+      },
+      on_edit = {}, -- not yet implemented
+    },
+    ui = {
+      select_prompts = false, -- not yet implemented
+      confirm = {
+        connect = true, -- prompt y/n when host is selected to connect to
+        change_dir = false, -- prompt y/n to change working directory on connection (only applicable if handlers.on_connect.change_dir is enabled)
+      },
+    },
+    log = {
+      enable = false, -- enable logging
+      truncate = false, -- truncate logs
+      types = { -- enabled log types
+        all = false,
+        util = false,
+        handler = false,
+        sshfs = false,
+      },
+    },
+  },
+  {
+    "chrisgrieser/nvim-spider",
+    keys = {
+      {
+        "e",
+        "<cmd>lua require('spider').motion('e')<CR>",
+        mode = { "n", "o", "x" },
+      },
+      {
+        "w",
+        "<cmd>lua require('spider').motion('w')<CR>",
+        mode = { "n", "o", "x" },
+      },
+      {
+        "b",
+        "<cmd>lua require('spider').motion('b')<CR>",
+        mode = { "n", "o", "x" },
+      },
+      -- ...
+    },
+  },
   'nvim-treesitter/nvim-treesitter',
   -- {
   --   "nvim-telescope/telescope.nvim",
@@ -105,7 +170,18 @@ lvim.plugins = {
       })
     end,
   },
-  "ray-x/lsp_signature.nvim",
+  {
+    "ray-x/lsp_signature.nvim",
+    config = function()
+      require "lsp_signature".setup({
+        bind = true,
+        handler_opts = {
+          border = "rounded"
+        },
+        hint_prefix = " ",
+      })
+    end,
+  },
   "terryma/vim-multiple-cursors",
   {
     "akinsho/git-conflict.nvim",
@@ -216,6 +292,56 @@ require('go').setup({
   },
 })
 
+require('telescope').load_extension 'remote-sshfs'
+require('remote-sshfs').setup{
+  connections = {
+    ssh_configs = { -- which ssh configs to parse for hosts list
+      "/home/utsuro/.ssh/config",
+      -- "/path/to/custom/ssh_config"
+    },
+    -- NOTE: Can define ssh_configs similarly to include all configs in a folder
+    -- ssh_configs = vim.split(vim.fn.globpath(vim.fn.expand "$HOME" .. "/.ssh/configs", "*"), "\n")
+    sshfs_args = { -- arguments to pass to the sshfs command
+      "-o reconnect",
+      "-o ConnectTimeout=5",
+    },
+  },
+  mounts = {
+    base_dir = vim.fn.expand "$HOME" .. "/.sshfs/", -- base directory for mount points
+    unmount_on_exit = true, -- run sshfs as foreground, will unmount on vim exit
+  },
+  handlers = {
+    on_connect = {
+      change_dir = true, -- when connected change vim working directory to mount point
+    },
+    on_disconnect = {
+      clean_mount_folders = false, -- remove mount point folder on disconnect/unmount
+    },
+    on_edit = {}, -- not yet implemented
+  },
+  ui = {
+    select_prompts = false, -- not yet implemented
+    confirm = {
+      connect = true, -- prompt y/n when host is selected to connect to
+      change_dir = false, -- prompt y/n to change working directory on connection (only applicable if handlers.on_connect.change_dir is enabled)
+    },
+  },
+  log = {
+    enable = false, -- enable logging
+    truncate = false, -- truncate logs
+    types = { -- enabled log types
+      all = false,
+      util = false,
+      handler = false,
+      sshfs = false,
+    },
+  },
+}
+
+-- no need to set style = "lvim"
+local components = require("lvim.core.lualine.components")
+lvim.builtin.lualine.sections.lualine_b = { components.branch }
+
 local lsp_manager = require "lvim.lsp.manager"
 lsp_manager.setup("golangci_lint_ls", {
   on_init = require("lvim.lsp").common_on_init,
@@ -225,6 +351,10 @@ lsp_manager.setup("bufls", {
   on_init = require("lvim.lsp").common_on_init(),
   capabilities = require("lvim.lsp").common_capabilities(),
 })
+
+local linters = require "lvim.lsp.null-ls.linters"
+linters.setup { { command = "golangci-lint", filetypes = { "go" } } }
+
 ------------------------
 -- Formatting
 ------------------------
@@ -234,6 +364,7 @@ formatters.setup {
   { command = "gofumpt", filetypes = { "go" } },
   { command = "buf", filetypes = { "proto" } },
   { command = "rustfmt", filetypes = { "rs" } },
+  { command = "clang-format", filetypes = { "cpp" } },
 }
 
 lvim.format_on_save = {

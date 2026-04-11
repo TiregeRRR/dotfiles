@@ -1,0 +1,11 @@
+{
+  "name": "Pixel Code",
+  "font_ui": "Noto Sans",
+  "font_mono": "Pixel Code",
+  "font_nerd": "JetBrains Mono Nerd Font",
+  "waybar_size": 11,
+  "rofi_size": 11,
+  "alacritty_size": 10,
+  "hypr_groupbar_size": 10,
+  "nvim_gui_size": 11
+}

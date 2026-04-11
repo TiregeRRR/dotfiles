@@ -26,8 +26,30 @@ require("lazy").setup({
 		end,
 	},
 	{
+		"ellisonleao/gruvbox.nvim",
+		priority = 1000,
+		cond = function()
+			return not vim.g.vscode
+		end,
+	},
+	{
 		"catppuccin/nvim",
 		name = "catppuccin",
+		priority = 1000,
+		cond = function()
+			return not vim.g.vscode
+		end,
+	},
+	{
+		"rose-pine/neovim",
+		name = "rose-pine",
+		priority = 1000,
+		cond = function()
+			return not vim.g.vscode
+		end,
+	},
+	{
+		"rebelot/kanagawa.nvim",
 		priority = 1000,
 		cond = function()
 			return not vim.g.vscode
@@ -118,18 +140,7 @@ require("lazy").setup({
 		config = true,
 	},
 	{
-		"nvim-neo-tree/neo-tree.nvim",
-		branch = "v3.x",
-		dependencies = {
-			"nvim-lua/plenary.nvim",
-			"nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
-			"MunifTanjim/nui.nvim",
-			"3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
-			"s1n7ax/nvim-window-picker",
-		},
-		cond = function()
-			return not vim.g.vscode
-		end,
+		"MunifTanjim/nui.nvim",
 	},
 	{
 		"nvim-lualine/lualine.nvim",
@@ -186,12 +197,6 @@ require("lazy").setup({
 		end,
 	},
 	{
-		"lewis6991/gitsigns.nvim",
-		config = function()
-			require("gitsigns").setup()
-		end,
-	},
-	{
 		"folke/which-key.nvim",
 		event = "VeryLazy",
 		priority = 999, -- Load before other plugins
@@ -235,25 +240,6 @@ require("lazy").setup({
 		},
 	},
 	{
-		"nvim-orgmode/orgmode",
-		event = "VeryLazy",
-		ft = { "org" },
-		config = function()
-			-- Setup orgmode
-			require("orgmode").setup({
-				org_agenda_files = "~/neoconserva/**/*",
-				org_default_notes_file = "~/neoconserva/refile.org",
-			})
-
-			-- NOTE: If you are using nvim-treesitter with ~ensure_installed = "all"~ option
-			-- add ~org~ to ignore_install
-			-- require('nvim-treesitter.configs').setup({
-			--   ensure_installed = 'all',
-			--   ignore_install = { 'org' },
-			-- })
-		end,
-	},
-	{
 		"hrsh7th/nvim-cmp",
 		dependencies = {
 			"lspkind.nvim",
@@ -269,4 +255,100 @@ require("lazy").setup({
 			return not vim.g.vscode
 		end,
 	},
+	{
+		"lewis6991/gitsigns.nvim",
+		config = function()
+			require("config.gitsigns")
+		end,
+	},
+	{
+		"epwalsh/obsidian.nvim",
+		version = "*", -- recommended, use latest release instead of latest commit
+		lazy = true,
+		event = "VeryLazy",
+		ft = "markdown",
+		-- Replace the above line with this if you only want to load obsidian.nvim for markdown files in your vault:
+		-- event = {
+		--   -- If you want to use the home shortcut '~' here you need to call 'vim.fn.expand'.
+		--   -- E.g. "BufReadPre " .. vim.fn.expand "~" .. "/my-vault/*.md"
+		--   -- refer to `:h file-pattern` for more examples
+		--   "BufReadPre path/to/my-vault/*.md",
+		--   "BufNewFile path/to/my-vault/*.md",
+		-- },
+		dependencies = {
+			-- Required.
+			"nvim-lua/plenary.nvim",
+
+			-- see below for full list of optional dependencies 👇
+		},
+		opts = {
+			workspaces = {
+				{
+					name = "work",
+					path = "~/neoconserva",
+				},
+			},
+		},
+	},
+	{
+		"s1n7ax/nvim-window-picker",
+		name = "window-picker",
+		event = "VeryLazy",
+		version = "2.*",
+		config = function()
+			require("window-picker").setup()
+		end,
+	},
+	{
+		"harrisoncramer/gitlab.nvim",
+		dependencies = {
+			"MunifTanjim/nui.nvim",
+			"nvim-lua/plenary.nvim",
+			"sindrets/diffview.nvim",
+			"stevearc/dressing.nvim", -- Recommended but not required. Better UI for pickers.
+			"nvim-tree/nvim-web-devicons", -- Recommended but not required. Icons in discussion tree.
+		},
+		build = function()
+			require("gitlab.server").build(true)
+		end, -- Builds the Go binary
+		config = function()
+			require("gitlab").setup()
+		end,
+	},
+	{
+		"lukas-reineke/indent-blankline.nvim",
+		main = "ibl",
+		config = function()
+			require("ibl").setup({
+				scope = { enabled = false },
+			})
+		end,
+	},
+	{
+		"nvim-mini/mini.files",
+		version = "*",
+		config = function()
+			require("mini.files").setup()
+		end,
+	},
+	{
+		"stevearc/aerial.nvim",
+		opts = {},
+		-- Optional dependencies
+		dependencies = {
+			"nvim-treesitter/nvim-treesitter",
+			"nvim-tree/nvim-web-devicons",
+			config = function()
+				require("aerial").setup({
+					-- optionally use on_attach to set keymaps when aerial has attached to a buffer
+					on_attach = function(bufnr)
+						-- Jump forwards/backwards with '{' and '}'
+						vim.keymap.set("n", "{", "<cmd>AerialPrev<CR>", { buffer = bufnr })
+						vim.keymap.set("n", "}", "<cmd>AerialNext<CR>", { buffer = bufnr })
+					end,
+				})
+			end,
+		},
+	},
+	{ "akinsho/git-conflict.nvim", version = "*", config = true },
 })

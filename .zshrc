@@ -8,7 +8,7 @@ export ZSH="$HOME/.oh-my-zsh"
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="robbyrussell"
+ZSH_THEME="bira"
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -70,7 +70,12 @@ ZSH_THEME="robbyrussell"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
+plugins=(
+  git
+  zsh-autosuggestions
+)
+
+ZSH_DISABLE_COMPFIX=true
 
 source $ZSH/oh-my-zsh.sh
 
@@ -103,8 +108,19 @@ export PATH="/home/utsuro/.cargo/bin:$PATH"
 export PATH="/home/utsuro/.local/bin:$PATH"
 export PATH="/home/utsuro/go/bin:$PATH"
 export PATH="/home/utsuro/.config/emacs/bin:$PATH"
+export TERM=xterm-256color
 
+alias cat="bat"
+alias cd="z"
+alias grep="rg"
+alias ls="lsd"
+alias ll="lsd -l"
+alias fastfetch="pokeget haunter --hide-name | fastfetch --file-raw -"
+alias zet="nvim ~/conserva"
 
 source /home/utsuro/.local/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 eval "$(zoxide init zsh)"
+
+export GITLAB_TOKEN="dSjvC13mpASqV7y7FtLv"
+export GITLAB_URL="https://git.mobiledep.ru/"

@@ -7,7 +7,17 @@ killall -q polybar
 #
 if type "xrandr"; then
   for m in $(xrandr --query | grep " connected" | cut -d" " -f1); do
-    MONITOR=$m polybar --reload example &
+    echo $m
+    if [[ $m == "HDMI-0" ]]; then 
+      MONITOR=$m polybar -r main &
+    fi
+    if [[ $m == "DP-0" ]]; then
+      MONITOR=$m polybar -r side &
+    fi
+    if [[ $m == "DP-2" ]]; then
+      MONITOR=$m polybar -r side &
+    fi
+    #MONITOR=$m polybar --reload example &
   done
 else
   polybar --reload example &

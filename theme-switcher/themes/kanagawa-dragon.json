@@ -1,0 +1,41 @@
+{
+  "name": "Kanagawa Dragon",
+  "font_ui": "Noto Sans",
+  "font_mono": "JetBrains Mono Nerd Font",
+  "wallpaper": "wallpapers/kanagawa-dragon-wave-black.jpg",
+  "background": "181616",
+  "background_alt": "0d0c0c",
+  "foreground": "c5c9c5",
+  "accent": "a292a3",
+  "accent_alt": "8ba4b0",
+  "warning": "ff9e3b",
+  "danger": "e82424",
+  "muted": "737c73",
+  "nvim_colorscheme": "kanagawa-dragon",
+  "alacritty": {
+    "primary": {
+      "background": "#181616",
+      "foreground": "#c5c9c5"
+    },
+    "normal": {
+      "black": "#0d0c0c",
+      "red": "#c4746e",
+      "green": "#8a9a7b",
+      "yellow": "#c4b28a",
+      "blue": "#8ba4b0",
+      "magenta": "#a292a3",
+      "cyan": "#8ea4a2",
+      "white": "#c8c093"
+    },
+    "bright": {
+      "black": "#a6a69c",
+      "red": "#e46876",
+      "green": "#87a987",
+      "yellow": "#e6c384",
+      "blue": "#7fb4ca",
+      "magenta": "#938aa9",
+      "cyan": "#7aa89f",
+      "white": "#c5c9c5"
+    }
+  }
+}

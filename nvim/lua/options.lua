@@ -40,7 +40,7 @@ vim.opt.smartcase = true -- but make it case sensitive if an uppercase is entere
 --     end
 -- })
 --
-vim.lsp.inlay_hint.enable(true)
+vim.lsp.inlay_hint.enable(false)
 
 vim.g.have_nerd_font = true
 

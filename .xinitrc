@@ -52,4 +52,5 @@ twm &
 xclock -geometry 50x50-1+1 &
 xterm -geometry 80x50+494+51 &
 xterm -geometry 80x20+494-0 &
+export XDG_CURRENT_DESKTOP=i3
 exec i3

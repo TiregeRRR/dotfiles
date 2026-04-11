@@ -1,0 +1,23 @@
+[colors.primary]
+background = "__ALACRITTY_PRIMARY_BACKGROUND__"
+foreground = "__ALACRITTY_PRIMARY_FOREGROUND__"
+
+[colors.normal]
+black = "__ALACRITTY_NORMAL_BLACK__"
+red = "__ALACRITTY_NORMAL_RED__"
+green = "__ALACRITTY_NORMAL_GREEN__"
+yellow = "__ALACRITTY_NORMAL_YELLOW__"
+blue = "__ALACRITTY_NORMAL_BLUE__"
+magenta = "__ALACRITTY_NORMAL_MAGENTA__"
+cyan = "__ALACRITTY_NORMAL_CYAN__"
+white = "__ALACRITTY_NORMAL_WHITE__"
+
+[colors.bright]
+black = "__ALACRITTY_BRIGHT_BLACK__"
+red = "__ALACRITTY_BRIGHT_RED__"
+green = "__ALACRITTY_BRIGHT_GREEN__"
+yellow = "__ALACRITTY_BRIGHT_YELLOW__"
+blue = "__ALACRITTY_BRIGHT_BLUE__"
+magenta = "__ALACRITTY_BRIGHT_MAGENTA__"
+cyan = "__ALACRITTY_BRIGHT_CYAN__"
+white = "__ALACRITTY_BRIGHT_WHITE__"

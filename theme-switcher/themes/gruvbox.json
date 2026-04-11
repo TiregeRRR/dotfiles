@@ -1,0 +1,41 @@
+{
+  "name": "Gruvbox",
+  "font_ui": "Noto Sans",
+  "font_mono": "JetBrains Mono Nerd Font",
+  "wallpaper": "wallpapers/gruvbox-forest.png",
+  "background": "282828",
+  "background_alt": "1d2021",
+  "foreground": "ebdbb2",
+  "accent": "d79921",
+  "accent_alt": "83a598",
+  "warning": "fabd2f",
+  "danger": "fb4934",
+  "muted": "665c54",
+  "nvim_colorscheme": "gruvbox",
+  "alacritty": {
+    "primary": {
+      "background": "#282828",
+      "foreground": "#ebdbb2"
+    },
+    "normal": {
+      "black": "#282828",
+      "red": "#cc241d",
+      "green": "#98971a",
+      "yellow": "#d79921",
+      "blue": "#458588",
+      "magenta": "#b16286",
+      "cyan": "#689d6a",
+      "white": "#a89984"
+    },
+    "bright": {
+      "black": "#928374",
+      "red": "#fb4934",
+      "green": "#b8bb26",
+      "yellow": "#fabd2f",
+      "blue": "#83a598",
+      "magenta": "#d3869b",
+      "cyan": "#8ec07c",
+      "white": "#ebdbb2"
+    }
+  }
+}

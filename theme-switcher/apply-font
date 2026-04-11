@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE="$HOME/.config/theme-switcher"
+FONTS="$BASE/fonts"
+CURRENT="$BASE/current_font"
+DEFAULT="pixel-code"
+
+list_fonts() {
+    find "$FONTS" -maxdepth 1 -type f -name '*.json' -printf '%f\n' | sed 's/\.json$//' | sort
+}
+
+current_font() {
+    if [[ -f "$CURRENT" ]]; then
+        cat "$CURRENT"
+    else
+        printf '%s\n' "$DEFAULT"
+    fi
+}
+
+case "${1-}" in
+    --list)
+        list_fonts
+        exit 0
+        ;;
+    --current-name)
+        current_font
+        exit 0
+        ;;
+    "")
+        FONT="$(current_font)"
+        ;;
+    *)
+        FONT="$1"
+        ;;
+esac
+
+if [[ ! -f "$FONTS/$FONT.json" ]]; then
+    printf 'Unknown font preset %s. Available: %s\n' "$FONT" "$(list_fonts | paste -sd ', ' -)" >&2
+    exit 1
+fi
+
+printf '%s\n' "$FONT" > "$CURRENT"
+exec "$BASE/apply-theme" --current

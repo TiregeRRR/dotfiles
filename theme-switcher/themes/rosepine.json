@@ -1,0 +1,41 @@
+{
+  "name": "Rose Pine",
+  "font_ui": "Noto Sans",
+  "font_mono": "JetBrains Mono Nerd Font",
+  "wallpaper": "wallpapers/rosepine-cozy-reading.png",
+  "background": "232136",
+  "background_alt": "2a273f",
+  "foreground": "e0def4",
+  "accent": "c4a7e7",
+  "accent_alt": "9ccfd8",
+  "warning": "f6c177",
+  "danger": "eb6f92",
+  "muted": "393552",
+  "nvim_colorscheme": "rose-pine",
+  "alacritty": {
+    "primary": {
+      "background": "#191724",
+      "foreground": "#e0def4"
+    },
+    "normal": {
+      "black": "#26233a",
+      "red": "#eb6f92",
+      "green": "#31748f",
+      "yellow": "#f6c177",
+      "blue": "#9ccfd8",
+      "magenta": "#c4a7e7",
+      "cyan": "#ebbcba",
+      "white": "#e0def4"
+    },
+    "bright": {
+      "black": "#6e6a86",
+      "red": "#eb6f92",
+      "green": "#31748f",
+      "yellow": "#f6c177",
+      "blue": "#9ccfd8",
+      "magenta": "#c4a7e7",
+      "cyan": "#ebbcba",
+      "white": "#e0def4"
+    }
+  }
+}
