@@ -2,7 +2,11 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+if [[ -d "$HOME/.oh-my-zsh" ]]; then
+  export ZSH="$HOME/.oh-my-zsh"
+else
+  export ZSH="/usr/share/oh-my-zsh"
+fi
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -70,14 +74,26 @@ ZSH_THEME="bira"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(
-  git
-  zsh-autosuggestions
-)
+plugins=(git)
 
 ZSH_DISABLE_COMPFIX=true
 
-source $ZSH/oh-my-zsh.sh
+if [[ -r "$ZSH/oh-my-zsh.sh" ]]; then
+  source "$ZSH/oh-my-zsh.sh"
+fi
+
+source_first() {
+  local candidate
+
+  for candidate in "$@"; do
+    if [[ -r "$candidate" ]]; then
+      source "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
+}
 
 # User configuration
 
@@ -118,9 +134,16 @@ alias ll="lsd -l"
 alias fastfetch="pokeget haunter --hide-name | fastfetch --file-raw -"
 alias zet="nvim ~/conserva"
 
-source /home/utsuro/.local/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source_first \
+  "$HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+  "/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 eval "$(zoxide init zsh)"
 
-export GITLAB_TOKEN="dSjvC13mpASqV7y7FtLv"
-export GITLAB_URL="https://git.mobiledep.ru/"
+if source_first \
+  "$HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  "$HOME/.local/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+then
+  ZSH_HIGHLIGHT_STYLES[comment]='fg=blue'
+fi

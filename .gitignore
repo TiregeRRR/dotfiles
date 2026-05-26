@@ -9,3 +9,5 @@ hypr/waybar.css
 hypr/waybar.jsonc
 nvim/lua/theme/generated.lua
 rofi/theme-generated.rasi
+theme-switcher/current_font
+theme-switcher/current_theme

@@ -3,8 +3,11 @@ set -euo pipefail
 
 BASE="$HOME/.config/theme-switcher"
 FONTS="$BASE/fonts"
-CURRENT="$BASE/current_font"
-DEFAULT="pixel-code"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/theme-switcher"
+CURRENT="$STATE_DIR/current_font"
+LEGACY_CURRENT="$BASE/current_font"
+DEFAULT_FILE="$BASE/default_font"
+FALLBACK_DEFAULT="pixel-code"
 
 list_fonts() {
     find "$FONTS" -maxdepth 1 -type f -name '*.json' -printf '%f\n' | sed 's/\.json$//' | sort
@@ -13,8 +16,12 @@ list_fonts() {
 current_font() {
     if [[ -f "$CURRENT" ]]; then
         cat "$CURRENT"
+    elif [[ -f "$LEGACY_CURRENT" ]]; then
+        cat "$LEGACY_CURRENT"
+    elif [[ -f "$DEFAULT_FILE" ]]; then
+        cat "$DEFAULT_FILE"
     else
-        printf '%s\n' "$DEFAULT"
+        printf '%s\n' "$FALLBACK_DEFAULT"
     fi
 }
 
@@ -40,5 +47,6 @@ if [[ ! -f "$FONTS/$FONT.json" ]]; then
     exit 1
 fi
 
+mkdir -p "$STATE_DIR"
 printf '%s\n' "$FONT" > "$CURRENT"
 exec "$BASE/apply-theme" --current

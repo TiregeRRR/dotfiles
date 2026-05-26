@@ -2,9 +2,6 @@
   {
     "layer": "top",
     "position": "bottom",
-    "output": [
-      "HDMI-A-1"
-    ],
     "exclusive": true,
     "height": 24,
     "spacing": 0,
@@ -109,27 +106,6 @@
       "interval": 1,
       "format": "<span foreground='__ACCENT_CSS__'>{:%Y-%m-%d %H:%M:%S}</span>",
       "tooltip": false
-    }
-  },
-  {
-    "layer": "top",
-    "position": "bottom",
-    "output": [
-      "DP-1",
-      "DP-2"
-    ],
-    "exclusive": true,
-    "height": 24,
-    "spacing": 0,
-    "modules-left": [
-      "hyprland/workspaces"
-    ],
-    "hyprland/workspaces": {
-      "all-outputs": false,
-      "disable-scroll": true,
-      "move-to-monitor": true,
-      "format": "{id}",
-      "sort-by": "number"
     }
   }
 ]

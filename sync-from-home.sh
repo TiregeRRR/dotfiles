@@ -76,8 +76,6 @@ sync_config_dir() {
       excludes+=(
         --exclude 'current_font'
         --exclude 'current_theme'
-        --exclude 'default_font'
-        --exclude 'default_theme'
       )
       ;;
   esac

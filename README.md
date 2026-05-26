@@ -24,7 +24,7 @@ The installer:
 - bootstraps `yay` if it is missing
 - symlinks the tracked dotfiles into `~/.config` and `~`
 - generates theme-dependent config via `theme-switcher`
-- enables `ly` and `NetworkManager`
+- enables `ly@tty2.service` when the unit exists, plus `NetworkManager`
 - backs up replaced files into `~/.local/state/dotfiles/backups/`
 
 Useful flags:

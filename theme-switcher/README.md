@@ -48,6 +48,8 @@ Open the chooser:
 
 Inside Hyprland it is also bound to `Super+Shift+T` for themes and `Super+Shift+F` for fonts.
 
+The tracked defaults live in `default_theme` and `default_font`. The active selection is stored outside git in `~/.local/state/theme-switcher/`.
+
 ## Runtime behavior
 
 - `Hyprland`, `Waybar`, `Hyprpaper`, `Rofi` and `Dunst` are regenerated immediately.

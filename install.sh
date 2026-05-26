@@ -159,7 +159,14 @@ apply_default_theme() {
 
 enable_services() {
   log "Enabling ly and NetworkManager"
-  sudo systemctl enable ly.service
+  if systemctl list-unit-files 'ly@.service' --no-legend 2>/dev/null | grep -q '^ly@\.service'; then
+    sudo systemctl disable getty@tty2.service >/dev/null 2>&1 || true
+    sudo systemctl enable ly@tty2.service
+  elif systemctl list-unit-files 'ly.service' --no-legend 2>/dev/null | grep -q '^ly\.service'; then
+    sudo systemctl enable ly.service
+  else
+    log "Skipping ly: no matching systemd unit found"
+  fi
   sudo systemctl enable NetworkManager.service
 }
 

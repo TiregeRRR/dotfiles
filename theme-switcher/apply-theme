@@ -14,12 +14,18 @@ from pathlib import Path
 
 HOME = Path.home()
 BASE_DIR = HOME / ".config" / "theme-switcher"
+STATE_DIR = Path(os.environ.get("XDG_STATE_HOME", str(HOME / ".local" / "state"))) / "theme-switcher"
 THEMES_DIR = BASE_DIR / "themes"
 FONTS_DIR = BASE_DIR / "fonts"
 TEMPLATES_DIR = BASE_DIR / "templates"
-CURRENT_THEME_FILE = BASE_DIR / "current_theme"
-CURRENT_FONT_FILE = BASE_DIR / "current_font"
-DEFAULT_FONT_ID = "pixel-code"
+CURRENT_THEME_FILE = STATE_DIR / "current_theme"
+CURRENT_FONT_FILE = STATE_DIR / "current_font"
+LEGACY_CURRENT_THEME_FILE = BASE_DIR / "current_theme"
+LEGACY_CURRENT_FONT_FILE = BASE_DIR / "current_font"
+DEFAULT_THEME_FILE = BASE_DIR / "default_theme"
+DEFAULT_FONT_FILE = BASE_DIR / "default_font"
+FALLBACK_THEME_ID = "tokyonight"
+FALLBACK_FONT_ID = "pixel-code"
 
 HYPR_THEME_OUT = HOME / ".config" / "hypr" / "theme" / "current.conf"
 WAYBAR_JSON_OUT = HOME / ".config" / "hypr" / "waybar.jsonc"
@@ -122,6 +128,47 @@ def write_file(path: Path, content: str) -> None:
     path.write_text(content)
 
 
+def read_text_file(path: Path) -> str | None:
+    if not path.exists():
+        return None
+
+    value = path.read_text().strip()
+    return value or None
+
+
+def read_default(path: Path, fallback: str) -> str:
+    return read_text_file(path) or fallback
+
+
+def read_saved_value(path: Path, legacy_path: Path, default_value: str) -> str:
+    current = read_text_file(path)
+    if current:
+        return current
+
+    legacy = read_text_file(legacy_path)
+    if legacy:
+        write_file(path, f"{legacy}\n")
+        return legacy
+
+    return default_value
+
+
+def default_theme_id() -> str:
+    return read_default(DEFAULT_THEME_FILE, FALLBACK_THEME_ID)
+
+
+def default_font_id() -> str:
+    return read_default(DEFAULT_FONT_FILE, FALLBACK_FONT_ID)
+
+
+def current_theme_id() -> str:
+    return read_saved_value(CURRENT_THEME_FILE, LEGACY_CURRENT_THEME_FILE, default_theme_id())
+
+
+def current_font_id() -> str:
+    return read_saved_value(CURRENT_FONT_FILE, LEGACY_CURRENT_FONT_FILE, default_font_id())
+
+
 def replace_or_append_block(content: str, begin: str, end: str, block: str) -> str:
     replacement = f"{begin}\n{block.rstrip()}\n{end}\n"
     if begin in content and end in content:
@@ -164,14 +211,14 @@ def write_json(path: Path, content: dict) -> None:
 
 
 def resolve_fonts(theme: dict) -> dict[str, str]:
-    font_id = CURRENT_FONT_FILE.read_text().strip() if CURRENT_FONT_FILE.exists() else DEFAULT_FONT_ID
+    font_id = current_font_id()
     available = set(list_fonts())
     font_preset = {}
 
     if font_id in available:
         font_preset = load_font(font_id)
     else:
-        font_id = DEFAULT_FONT_ID
+        font_id = default_font_id()
         if font_id in available:
             font_preset = load_font(font_id)
 
@@ -508,7 +555,7 @@ def reload_runtime() -> None:
         )
 
     if shutil.which("notify-send"):
-        theme_id = CURRENT_THEME_FILE.read_text().strip()
+        theme_id = current_theme_id()
         subprocess.run(
             ["notify-send", "Theme applied", theme_id],
             check=False,
@@ -601,16 +648,15 @@ def main() -> int:
         return 0
 
     if args.current_name:
-        if CURRENT_THEME_FILE.exists():
-            print(CURRENT_THEME_FILE.read_text().strip())
+        print(current_theme_id())
         return 0
 
     if args.current:
-        theme_name = CURRENT_THEME_FILE.read_text().strip() if CURRENT_THEME_FILE.exists() else "tokyonight"
+        theme_name = current_theme_id()
         apply_theme(theme_name, args.no_reload)
         return 0
 
-    theme_name = args.theme or (CURRENT_THEME_FILE.read_text().strip() if CURRENT_THEME_FILE.exists() else "tokyonight")
+    theme_name = args.theme or current_theme_id()
     available = list_themes()
     if theme_name not in available:
         print(f"Unknown theme '{theme_name}'. Available: {', '.join(available)}", file=sys.stderr)
