@@ -22,7 +22,8 @@
       "cpu",
       "network#wlan",
       "network#eth",
-      "clock"
+      "clock",
+      "custom/quick-settings"
     ],
     "hyprland/workspaces": {
       "all-outputs": false,
@@ -106,6 +107,13 @@
       "interval": 1,
       "format": "<span foreground='__ACCENT_CSS__'>{:%Y-%m-%d %H:%M:%S}</span>",
       "tooltip": false
+    },
+    "custom/quick-settings": {
+      "exec": "/home/utsuro/.config/hypr/quick-settings-menu --label",
+      "interval": 3600,
+      "format": "{}",
+      "tooltip": false,
+      "on-click": "/home/utsuro/.config/hypr/quick-settings-menu"
     }
   }
 ]

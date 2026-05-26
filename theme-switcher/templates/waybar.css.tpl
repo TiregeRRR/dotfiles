@@ -68,6 +68,20 @@ tooltip {
   font-weight: 600;
 }
 
+#custom-quick-settings {
+  margin-left: 10px;
+  padding: 0 10px;
+  background: __ACCENT_CSS__;
+  color: __BACKGROUND_ALT_CSS__;
+  font-weight: 700;
+}
+
+#custom-quick-settings:hover {
+  background: __FOREGROUND_CSS__;
+  color: __BACKGROUND_ALT_CSS__;
+  box-shadow: none;
+}
+
 #tray {
   padding: 0 8px 0 0;
 }
