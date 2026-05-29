@@ -11,6 +11,7 @@ hyprland
 hyprlock
 hyprpaper
 jq
+libnotify
 lsd
 ly
 networkmanager

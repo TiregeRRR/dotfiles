@@ -68,6 +68,21 @@ tooltip {
   font-weight: 600;
 }
 
+#custom-postlink {
+  margin-left: 10px;
+  padding: 0 10px;
+  background: __WARNING_CSS__;
+  color: __BACKGROUND_ALT_CSS__;
+  font-weight: 700;
+}
+
+#custom-postlink.idle {
+  margin-left: 0;
+  padding: 0;
+  background: transparent;
+  color: transparent;
+}
+
 #custom-quick-settings {
   margin-left: 10px;
   padding: 0 10px;

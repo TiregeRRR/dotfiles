@@ -5,6 +5,7 @@ Arch Linux dotfiles with a Hyprland-first setup, theme switching, and a single b
 ## What is in here
 
 - `hypr/` - current Hyprland config, bindings, wallpaper and Waybar now-playing helper
+- `hypr/` also contains the PostLink log watcher that feeds desktop notifications and a Waybar badge
 - `theme-switcher/` - theme/font generator for Hyprland, Hyprlock, Hyprpaper, Waybar, Rofi, Alacritty, Neovim, Dunst, btop, Firefox and VS Code family
 - `nvim/` - Neovim config wired into the generated desktop theme
 - `alacritty/`, `rofi/` - base configs that import generated theme fragments

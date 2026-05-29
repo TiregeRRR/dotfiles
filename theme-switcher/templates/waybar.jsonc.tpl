@@ -22,6 +22,7 @@
       "cpu",
       "network#wlan",
       "network#eth",
+      "custom/postlink",
       "clock",
       "custom/quick-settings"
     ],
@@ -102,6 +103,12 @@
       "format-linked": "<span foreground='__WARNING_CSS__'>{ifname}</span> no-ip<span foreground='__ACCENT_CSS__'> | </span>",
       "format-disconnected": "",
       "tooltip": false
+    },
+    "custom/postlink": {
+      "exec": "python3 ~/.config/hypr/waybar-postlink.py",
+      "return-type": "json",
+      "interval": 1,
+      "format": "{}"
     },
     "clock": {
       "interval": 1,

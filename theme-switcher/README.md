@@ -54,6 +54,7 @@ The tracked defaults live in `default_theme` and `default_font`. The active sele
 
 - `Hyprland`, `Waybar`, `Hyprpaper`, `Rofi` and `Dunst` are regenerated immediately.
 - Missing `~/.config/rofi/config.rasi` is recreated automatically before writing the generated Rofi theme.
+- Waybar includes a PostLink badge driven by `~/.postlink-client_1/Log/postlink.log` when that profile exists.
 - `btop` gets a generated `theme-switcher.theme`; new btop launches pick it up automatically.
 - `k9s` gets a generated skin in `~/.config/k9s/skins/theme-switcher.yaml`; restart `k9s` if it is already running.
 - `Alacritty` reads `theme-generated.toml` via `import` and reloads through its live config reload.
