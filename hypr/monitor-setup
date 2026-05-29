@@ -3,66 +3,27 @@ set -euo pipefail
 
 STATE_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}"
 MONITORS_FILE="$STATE_ROOT/hypr/monitors.conf"
-MARKER_FILE="$STATE_ROOT/dotfiles/nwg-displays.first-run"
 
-usage() {
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   cat <<'EOF'
-Usage: monitor-setup [--once]
+Usage: monitor-setup
 
-Options:
-  --once  Launch nwg-displays only on the first run, or until monitor rules exist
-  -h      Show this help
+Launches nwg-displays and saves monitor rules to ~/.local/state/hypr/monitors.conf.
 EOF
-}
-
-has_saved_monitors() {
-  [[ -f "$MONITORS_FILE" ]] && grep -Eq '^[[:space:]]*monitor[[:space:]]*=' "$MONITORS_FILE"
-}
-
-run_once=0
-
-for arg in "$@"; do
-  case "$arg" in
-    --once)
-      run_once=1
-      ;;
-    -h|--help)
-      usage
-      exit 0
-      ;;
-    *)
-      printf 'Unknown option: %s\n' "$arg" >&2
-      usage >&2
-      exit 1
-      ;;
-  esac
-done
-
-mkdir -p "$(dirname "$MONITORS_FILE")" "$(dirname "$MARKER_FILE")"
-touch "$MONITORS_FILE"
-
-if (( run_once )); then
-  if has_saved_monitors; then
-    touch "$MARKER_FILE"
-    exit 0
-  fi
-
-  if [[ -f "$MARKER_FILE" ]]; then
-    exit 0
-  fi
+  exit 0
 fi
 
-if ! command -v nwg-displays >/dev/null 2>&1; then
-  if (( run_once )); then
-    exit 0
-  fi
-
-  printf 'nwg-displays is not installed.\n' >&2
+if (( $# > 0 )); then
+  printf 'monitor-setup does not accept arguments.\n' >&2
   exit 1
 fi
 
-if (( run_once )); then
-  touch "$MARKER_FILE"
+mkdir -p "$(dirname "$MONITORS_FILE")"
+touch "$MONITORS_FILE"
+
+if ! command -v nwg-displays >/dev/null 2>&1; then
+  printf 'nwg-displays is not installed.\n' >&2
+  exit 1
 fi
 
 exec nwg-displays -m "$MONITORS_FILE"

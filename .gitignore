@@ -4,6 +4,7 @@ alacritty/font-generated.toml
 alacritty/theme-generated.toml
 hypr/hyprlock.conf
 hypr/monitors.conf
+hypr/monitors.lua
 hypr/hyprpaper.conf
 hypr/theme/current.conf
 hypr/waybar.css

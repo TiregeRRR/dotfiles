@@ -177,18 +177,6 @@ apply_default_theme() {
   "$HOME/.config/theme-switcher/apply-theme" --current
 }
 
-maybe_launch_monitor_setup() {
-  if [[ ! -x "$HOME/.config/hypr/monitor-setup" ]]; then
-    return 0
-  fi
-
-  if [[ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" && "${XDG_CURRENT_DESKTOP:-}" != "Hyprland" ]]; then
-    return 0
-  fi
-
-  "$HOME/.config/hypr/monitor-setup" --once >/dev/null 2>&1 &
-}
-
 enable_services() {
   log "Enabling ly and NetworkManager"
   if systemctl list-unit-files 'ly@.service' --no-legend 2>/dev/null | grep -q '^ly@\.service'; then
@@ -245,7 +233,6 @@ prepare_runtime_dirs
 ensure_monitor_config
 ensure_rofi_config
 apply_default_theme
-maybe_launch_monitor_setup
 
 if (( SKIP_SERVICES == 0 )); then
   enable_services

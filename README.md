@@ -27,7 +27,6 @@ The installer:
 - creates `~/.local/state/hypr/monitors.conf` for local monitor rules outside git
 - ensures `~/.config/rofi/config.rasi` exists before first theme generation
 - generates theme-dependent config via `theme-switcher`
-- opens `nwg-displays` once on first install/login in Hyprland so monitor layout can be saved
 - enables `ly@tty2.service` when the unit exists, plus `NetworkManager`
 - backs up replaced files into `~/.local/state/dotfiles/backups/`
 
@@ -71,7 +70,7 @@ Current selections are stored outside git in `~/.local/state/theme-switcher/`.
 
 Hyprland sources monitor rules from `~/.local/state/hypr/monitors.conf`, not from the repo. This keeps `nwg-displays` output local to each machine, so later `git pull` runs and repeated `./install.sh` executions do not overwrite saved monitor layout.
 
-Use `~/.config/hypr/monitor-setup` or the `MON configure outputs` quick-settings entry to launch `nwg-displays` with the correct save path.
+`nwg-displays` is installed, but not auto-opened anymore. Use `~/.config/hypr/monitor-setup` or the `MON configure outputs` quick-settings entry to launch it explicitly with the correct save path.
 
 ## Notes
 

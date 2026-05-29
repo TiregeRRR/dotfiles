@@ -60,6 +60,7 @@ sync_config_dir() {
       excludes+=(
         --exclude 'hyprlock.conf'
         --exclude 'monitors.conf'
+        --exclude 'monitors.lua'
         --exclude 'hyprpaper.conf'
         --exclude 'theme/current.conf'
         --exclude 'wallpaper.png'
