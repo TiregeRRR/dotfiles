@@ -24,8 +24,10 @@ The installer:
 - installs Arch packages from [`packages/pacman.txt`](packages/pacman.txt)
 - bootstraps `yay` if it is missing
 - symlinks the tracked dotfiles into `~/.config` and `~`
+- creates `~/.local/state/hypr/monitors.conf` for local monitor rules outside git
 - ensures `~/.config/rofi/config.rasi` exists before first theme generation
 - generates theme-dependent config via `theme-switcher`
+- opens `nwg-displays` once on first install/login in Hyprland so monitor layout can be saved
 - enables `ly@tty2.service` when the unit exists, plus `NetworkManager`
 - backs up replaced files into `~/.local/state/dotfiles/backups/`
 
@@ -54,6 +56,7 @@ After install:
 
 - `Super+Shift+T` opens the theme picker
 - `Super+Shift+F` opens the font picker
+- quick settings include `MON configure outputs`, which opens the wrapped `nwg-displays`
 - `~/.config/theme-switcher/apply-theme --list` lists themes
 - `~/.config/theme-switcher/apply-font --list` lists font presets
 
@@ -63,6 +66,12 @@ Defaults are stored in:
 - [`theme-switcher/default_font`](theme-switcher/default_font)
 
 Current selections are stored outside git in `~/.local/state/theme-switcher/`.
+
+## Monitor Layout
+
+Hyprland sources monitor rules from `~/.local/state/hypr/monitors.conf`, not from the repo. This keeps `nwg-displays` output local to each machine, so later `git pull` runs and repeated `./install.sh` executions do not overwrite saved monitor layout.
+
+Use `~/.config/hypr/monitor-setup` or the `MON configure outputs` quick-settings entry to launch `nwg-displays` with the correct save path.
 
 ## Notes
 

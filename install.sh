@@ -4,6 +4,8 @@ set -euo pipefail
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 STATE_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}"
 BACKUP_ROOT="$STATE_ROOT/dotfiles/backups/$(date +%Y%m%d-%H%M%S)"
+HYPR_STATE_DIR="$STATE_ROOT/hypr"
+MONITORS_FILE="$HYPR_STATE_DIR/monitors.conf"
 PACMAN_PACKAGES_FILE="$REPO_ROOT/packages/pacman.txt"
 AUR_PACKAGES_FILE="$REPO_ROOT/packages/aur.txt"
 
@@ -151,7 +153,13 @@ prepare_runtime_dirs() {
     "$HOME/.config/btop/themes" \
     "$HOME/.config/dunst" \
     "$HOME/.config/rofi" \
+    "$HYPR_STATE_DIR" \
+    "$STATE_ROOT/dotfiles" \
     "$HOME/.local/state/theme-switcher"
+}
+
+ensure_monitor_config() {
+  touch "$MONITORS_FILE"
 }
 
 ensure_rofi_config() {
@@ -167,6 +175,18 @@ ensure_rofi_config() {
 apply_default_theme() {
   log "Generating theme-dependent config"
   "$HOME/.config/theme-switcher/apply-theme" --current
+}
+
+maybe_launch_monitor_setup() {
+  if [[ ! -x "$HOME/.config/hypr/monitor-setup" ]]; then
+    return 0
+  fi
+
+  if [[ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" && "${XDG_CURRENT_DESKTOP:-}" != "Hyprland" ]]; then
+    return 0
+  fi
+
+  "$HOME/.config/hypr/monitor-setup" --once >/dev/null 2>&1 &
 }
 
 enable_services() {
@@ -222,8 +242,10 @@ fi
 
 link_dotfiles
 prepare_runtime_dirs
+ensure_monitor_config
 ensure_rofi_config
 apply_default_theme
+maybe_launch_monitor_setup
 
 if (( SKIP_SERVICES == 0 )); then
   enable_services

@@ -59,6 +59,7 @@ sync_config_dir() {
     hypr)
       excludes+=(
         --exclude 'hyprlock.conf'
+        --exclude 'monitors.conf'
         --exclude 'hyprpaper.conf'
         --exclude 'theme/current.conf'
         --exclude 'wallpaper.png'

@@ -250,6 +250,9 @@ build_rows() {
     out_rows+=("$(format_row "FONT" "switch font" "$font_name")")
     out_actions+=("switch_font")
 
+    out_rows+=("$(format_row "MON" "configure outputs" "nwg-displays")")
+    out_actions+=("open_monitor_setup")
+
     out_rows+=("$(format_row "LOCK" "lock screen")")
     out_actions+=("lock_screen")
 }
@@ -514,6 +517,9 @@ run_action() {
             ;;
         open_mixer)
             exec pavucontrol
+            ;;
+        open_monitor_setup)
+            exec ~/.config/hypr/monitor-setup
             ;;
         toggle_source_mute)
             wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle >/dev/null 2>&1 || true

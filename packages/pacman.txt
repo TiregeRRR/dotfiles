@@ -18,6 +18,7 @@ networkmanager
 neovim
 nm-connection-editor
 noto-fonts
+nwg-displays
 papirus-icon-theme
 pavucontrol
 pipewire
