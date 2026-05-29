@@ -14,13 +14,9 @@ from typing import Iterable
 APP_NAME = "PostLink"
 PROFILE_ROOT = Path(os.environ.get("POSTLINK_PROFILE_ROOT", Path.home() / ".postlink-client_1"))
 LOG_PATH = PROFILE_ROOT / "Log" / "postlink.log"
-STATE_PATH = Path(
-    os.environ.get("POSTLINK_WAYBAR_STATE", Path.home() / ".cache" / "waybar-postlink-state.json")
-)
 ICON_PATH = Path("/opt/postlink/lib/PostLink.png")
 POLL_INTERVAL = 0.5
 REINDEX_INTERVAL = 300.0
-DISPLAY_NAME_LIMIT = 18
 
 UNREAD_RE = re.compile(r"Set unreadCount (?P<count>\d+) for object \[type (?P<type>\d+) id (?P<id>\d+)\]")
 CHAT_DIR_RE = re.compile(r"^(?P<name>.+) (?P<id>\d+)$")
@@ -35,28 +31,6 @@ CHAT_TYPE_LABELS = {
     "1": "user",
     "2": "conference",
 }
-
-
-def write_state(payload: dict) -> None:
-    STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    STATE_PATH.write_text(json.dumps(payload, ensure_ascii=False) + "\n")
-
-
-def empty_state() -> dict:
-    return {
-        "text": "",
-        "tooltip": "",
-        "class": ["postlink", "idle"],
-        "alt": "idle",
-    }
-
-
-def truncate(text: str, limit: int) -> str:
-    if len(text) <= limit:
-        return text
-    if limit <= 3:
-        return text[:limit]
-    return text[: limit - 3] + "..."
 
 
 def run_notify(summary: str, body: str) -> None:
@@ -102,36 +76,6 @@ def resolve_chat_name(chat_index: dict[str, str], chat_type: str, chat_id: str) 
     if key in chat_index:
         return chat_index[key]
     return f"{kind} {chat_id}"
-
-
-def tooltip_lines(unread: dict[str, dict]) -> list[str]:
-    if not unread:
-        return []
-
-    ordered = sorted(unread.values(), key=lambda item: (-item["count"], item["name"].lower()))
-    return [f'{item["name"]}: {item["count"]}' for item in ordered[:8]]
-
-
-def build_waybar_state(unread: dict[str, dict], latest_chat_name: str) -> dict:
-    total_unread = sum(item["count"] for item in unread.values())
-    if total_unread <= 0:
-        return empty_state()
-
-    active_chats = len(unread)
-    if active_chats == 1:
-        text = f"PL {truncate(latest_chat_name, DISPLAY_NAME_LIMIT)}"
-    else:
-        text = f"PL {total_unread}"
-
-    details = tooltip_lines(unread)
-    tooltip = "\n".join(details) if details else f"{latest_chat_name}: {total_unread}"
-
-    return {
-        "text": text,
-        "tooltip": tooltip,
-        "class": ["postlink", "active"],
-        "alt": "active",
-    }
 
 
 def apply_unread_update(
@@ -180,8 +124,6 @@ def follow() -> None:
     last_reindex = 0.0
     chat_index = build_chat_index()
     unread = parse_existing_log(chat_index)
-    last_state = build_waybar_state(unread, next(iter(unread.values()))["name"] if unread else "")
-    write_state(last_state)
     last_seen_counts = {key: item["count"] for key, item in unread.items()}
 
     file_handle = None
@@ -195,9 +137,6 @@ def follow() -> None:
             last_reindex = now
 
         if not LOG_PATH.exists():
-            if last_state != empty_state():
-                last_state = empty_state()
-                write_state(last_state)
             time.sleep(POLL_INTERVAL)
             continue
 
@@ -234,18 +173,12 @@ def follow() -> None:
         previous_count = last_seen_counts.get(key, 0)
         last_seen_counts[key] = count
 
-        next_state = build_waybar_state(unread, chat_name)
-        if next_state != last_state:
-            write_state(next_state)
-            last_state = next_state
-
         if count > previous_count:
             message_word = "message" if count == 1 else "messages"
             run_notify(f"{APP_NAME}: {chat_name}", f"{count} unread {message_word}")
 
 
 def main() -> None:
-    write_state(empty_state())
     follow()
 
 
