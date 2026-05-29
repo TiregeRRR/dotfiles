@@ -40,7 +40,7 @@
       "on-scroll-down": "hyprctl dispatch workspace e+1"
     },
     "custom/now-playing": {
-      "exec": "python3 /home/utsuro/.config/hypr/waybar-now-playing.py",
+      "exec": "python3 ~/.config/hypr/waybar-now-playing.py",
       "return-type": "json",
       "interval": 0.3,
       "format": "{text}",
@@ -109,11 +109,11 @@
       "tooltip": false
     },
     "custom/quick-settings": {
-      "exec": "/home/utsuro/.config/hypr/quick-settings-menu --label",
+      "exec": "~/.config/hypr/quick-settings-menu --label",
       "interval": 3600,
       "format": "{}",
       "tooltip": false,
-      "on-click": "/home/utsuro/.config/hypr/quick-settings-menu"
+      "on-click": "~/.config/hypr/quick-settings-menu"
     }
   }
 ]

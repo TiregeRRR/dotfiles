@@ -29,6 +29,7 @@ HOME_FILES=(
 SKIP_PACKAGES=0
 SKIP_SERVICES=0
 SKIP_SHELL=0
+ROFI_BASE_CONFIG='@import "theme-generated.rasi"'
 
 usage() {
   cat <<'EOF'
@@ -149,7 +150,18 @@ prepare_runtime_dirs() {
   mkdir -p \
     "$HOME/.config/btop/themes" \
     "$HOME/.config/dunst" \
+    "$HOME/.config/rofi" \
     "$HOME/.local/state/theme-switcher"
+}
+
+ensure_rofi_config() {
+  local target="$HOME/.config/rofi/config.rasi"
+
+  if [[ -f "$target" ]]; then
+    return 0
+  fi
+
+  printf '%s\n' "$ROFI_BASE_CONFIG" > "$target"
 }
 
 apply_default_theme() {
@@ -210,6 +222,7 @@ fi
 
 link_dotfiles
 prepare_runtime_dirs
+ensure_rofi_config
 apply_default_theme
 
 if (( SKIP_SERVICES == 0 )); then

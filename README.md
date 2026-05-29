@@ -20,9 +20,10 @@ cd ~/dotfiles
 
 The installer:
 
-- installs Arch packages from [`packages/pacman.txt`](/home/utsuro/dotfiles/packages/pacman.txt)
+- installs Arch packages from [`packages/pacman.txt`](packages/pacman.txt)
 - bootstraps `yay` if it is missing
 - symlinks the tracked dotfiles into `~/.config` and `~`
+- ensures `~/.config/rofi/config.rasi` exists before first theme generation
 - generates theme-dependent config via `theme-switcher`
 - enables `ly@tty2.service` when the unit exists, plus `NetworkManager`
 - backs up replaced files into `~/.local/state/dotfiles/backups/`
@@ -57,8 +58,8 @@ After install:
 
 Defaults are stored in:
 
-- [`theme-switcher/default_theme`](/home/utsuro/dotfiles/theme-switcher/default_theme)
-- [`theme-switcher/default_font`](/home/utsuro/dotfiles/theme-switcher/default_font)
+- [`theme-switcher/default_theme`](theme-switcher/default_theme)
+- [`theme-switcher/default_font`](theme-switcher/default_font)
 
 Current selections are stored outside git in `~/.local/state/theme-switcher/`.
 

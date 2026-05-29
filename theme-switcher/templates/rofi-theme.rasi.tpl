@@ -71,17 +71,35 @@ element {
     text-color: @fg;
 }
 
+element normal.normal,
+element alternate.normal {
+    background-color: transparent;
+    text-color: @fg;
+}
+
+element normal.active,
+element alternate.active {
+    background-color: transparent;
+    text-color: @accent-alt;
+}
+
+element normal.urgent,
+element alternate.urgent {
+    background-color: transparent;
+    text-color: @warning;
+}
+
 element selected.normal {
     background-color: @accent;
     text-color: @bg-alt;
 }
 
-element normal.active {
+element selected.active {
     background-color: @accent-alt;
     text-color: @bg-alt;
 }
 
-element normal.urgent {
+element selected.urgent {
     background-color: @warning;
     text-color: @bg-alt;
 }

@@ -317,15 +317,25 @@ element {
     padding: 8px 14px;
     border-radius: 0px;
     background-color: transparent;
-    text-color: @accent-alt;
+    text-color: @fg;
 }
 
 element normal.normal,
-element alternate.normal,
+element alternate.normal {
+    background-color: transparent;
+    text-color: @fg;
+}
+
 element normal.active,
 element alternate.active {
     background-color: transparent;
     text-color: @accent-alt;
+}
+
+element normal.urgent,
+element alternate.urgent {
+    background-color: transparent;
+    text-color: @warning;
 }
 
 element selected.normal {
@@ -334,8 +344,18 @@ element selected.normal {
 }
 
 element selected.active {
-    background-color: @accent;
+    background-color: @accent-alt;
     text-color: @bg-alt;
+}
+
+element selected.urgent {
+    background-color: @warning;
+    text-color: @bg-alt;
+}
+
+element-text, element-icon {
+    background-color: inherit;
+    text-color: inherit;
 }
 EOF
 }
@@ -394,15 +414,25 @@ element {
     padding: 8px 14px;
     border-radius: 0px;
     background-color: transparent;
-    text-color: @accent-alt;
+    text-color: @fg;
 }
 
 element normal.normal,
-element alternate.normal,
+element alternate.normal {
+    background-color: transparent;
+    text-color: @fg;
+}
+
 element normal.active,
 element alternate.active {
     background-color: transparent;
     text-color: @accent-alt;
+}
+
+element normal.urgent,
+element alternate.urgent {
+    background-color: transparent;
+    text-color: @warning;
 }
 
 element selected.normal {
@@ -411,8 +441,18 @@ element selected.normal {
 }
 
 element selected.active {
-    background-color: @accent;
+    background-color: @accent-alt;
     text-color: @bg-alt;
+}
+
+element selected.urgent {
+    background-color: @warning;
+    text-color: @bg-alt;
+}
+
+element-text, element-icon {
+    background-color: inherit;
+    text-color: inherit;
 }
 EOF
         return

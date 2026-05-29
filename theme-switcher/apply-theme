@@ -32,6 +32,7 @@ WAYBAR_JSON_OUT = HOME / ".config" / "hypr" / "waybar.jsonc"
 WAYBAR_CSS_OUT = HOME / ".config" / "hypr" / "waybar.css"
 HYPRLOCK_OUT = HOME / ".config" / "hypr" / "hyprlock.conf"
 HYPRPAPER_OUT = HOME / ".config" / "hypr" / "hyprpaper.conf"
+ROFI_CONFIG_OUT = HOME / ".config" / "rofi" / "config.rasi"
 ROFI_THEME_OUT = HOME / ".config" / "rofi" / "theme-generated.rasi"
 ALACRITTY_THEME_OUT = HOME / ".config" / "alacritty" / "theme-generated.toml"
 ALACRITTY_FONT_OUT = HOME / ".config" / "alacritty" / "font-generated.toml"
@@ -54,6 +55,7 @@ USER_CHROME_MARKER_BEGIN = "/* theme-switcher begin */"
 USER_CHROME_MARKER_END = "/* theme-switcher end */"
 USER_JS_MARKER_BEGIN = "// theme-switcher begin"
 USER_JS_MARKER_END = "// theme-switcher end"
+ROFI_BASE_CONFIG = '@import "theme-generated.rasi"\n'
 
 
 def hex_value(value: str) -> str:
@@ -126,6 +128,13 @@ def render(template_name: str, context: dict[str, str]) -> str:
 def write_file(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
+
+
+def ensure_rofi_config() -> None:
+    if ROFI_CONFIG_OUT.exists():
+        return
+
+    write_file(ROFI_CONFIG_OUT, ROFI_BASE_CONFIG)
 
 
 def read_text_file(path: Path) -> str | None:
@@ -568,6 +577,7 @@ def apply_theme(theme_name: str, no_reload: bool) -> None:
     theme = load_theme(theme_name)
     context = build_context(theme_name, theme)
 
+    ensure_rofi_config()
     write_file(HYPR_THEME_OUT, render("hypr-colors.conf.tpl", context))
     write_file(WAYBAR_JSON_OUT, render("waybar.jsonc.tpl", context))
     write_file(WAYBAR_CSS_OUT, render("waybar.css.tpl", context))

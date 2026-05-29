@@ -16,6 +16,6 @@ bindings = [
 [general]
 live_config_reload = true
 import = [
-  "/home/utsuro/.config/alacritty/theme-generated.toml",
-  "/home/utsuro/.config/alacritty/font-generated.toml",
+  "theme-generated.toml",
+  "font-generated.toml",
 ]
